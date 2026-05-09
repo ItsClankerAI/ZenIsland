@@ -7,82 +7,60 @@ struct HomeScreenView: View {
     var body: some View {
         let panels = visiblePanels
 
-        VStack(spacing: 0) {
-            if panels.isEmpty {
+        Group {
+            switch panels.count {
+            case 0:
                 HomeEmptyState(
                     icon: "square.grid.2x2",
                     title: "No home modules enabled",
                     subtitle: "Enable modules in Settings to show them here.",
                     fillsAvailableSpace: true
                 )
-            } else {
-                HStack(alignment: .top, spacing: 14) {
-                    ForEach(Array(panels.enumerated()), id: \.element.id) { index, panel in
-                        panelSlot(for: panel, visibleCount: panels.count)
-
-                        if index < panels.count - 1 {
-                            homeDivider
-                        }
-                    }
-                }
+            case 3:
+                threePanelLayout
+            default:
+                evenLayout(panels: panels)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var visiblePanels: [HomePanel] {
-        var panels: [HomePanel] = []
-        if appState.nowPlayingEnabled {
-            panels.append(.nowPlaying)
-        }
-        if appState.calendarEnabled {
-            panels.append(.calendar)
-        }
-        if appState.weatherEnabled {
-            panels.append(.weather)
-        }
-        return panels
+        var result: [HomePanel] = []
+        if appState.nowPlayingEnabled { result.append(.nowPlaying) }
+        if appState.calendarEnabled { result.append(.calendar) }
+        if appState.weatherEnabled { result.append(.weather) }
+        return result
     }
 
-    private func preferredPanelWidth(for panel: HomePanel, visibleCount: Int) -> CGFloat? {
-        guard visibleCount > 1 else { return nil }
+    private var threePanelLayout: some View {
+        HStack(alignment: .top, spacing: 14) {
+            HomeNowPlayingPanel()
+                .frame(width: 228, alignment: .topLeading)
 
-        switch panel {
-        case .nowPlaying:
-            return 360
-        case .calendar:
-            return 520
-        case .weather:
-            return 340
+            homeDivider
+
+            HomeCalendarPanel()
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+
+            homeDivider
+
+            HomeWeatherPanel()
+                .frame(width: 150, alignment: .topLeading)
         }
     }
 
-    private func resolvedPanelWidth(for panel: HomePanel, visibleCount: Int, availableWidth: CGFloat) -> CGFloat {
-        guard let preferredWidth = preferredPanelWidth(for: panel, visibleCount: visibleCount) else {
-            return availableWidth
-        }
-        return min(preferredWidth, availableWidth)
-    }
+    private func evenLayout(panels: [HomePanel]) -> some View {
+        HStack(alignment: .top, spacing: 14) {
+            ForEach(Array(panels.enumerated()), id: \.element.id) { index, panel in
+                panelView(for: panel)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
 
-    private func panelSlot(for panel: HomePanel, visibleCount: Int) -> some View {
-        GeometryReader { geometry in
-            panelView(for: panel)
-                .frame(
-                    width: resolvedPanelWidth(
-                        for: panel,
-                        visibleCount: visibleCount,
-                        availableWidth: geometry.size.width
-                    ),
-                    height: geometry.size.height,
-                    alignment: .top
-                )
-                .frame(
-                    width: geometry.size.width,
-                    height: geometry.size.height,
-                    alignment: .top
-                )
+                if index < panels.count - 1 {
+                    homeDivider
+                }
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     @ViewBuilder
@@ -149,7 +127,6 @@ private struct HomeNowPlayingPanel: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var albumArt: some View {
@@ -290,7 +267,6 @@ private struct HomeCalendarPanel: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var upcomingEvents: [EKEvent] {
@@ -395,7 +371,6 @@ private struct HomeWeatherPanel: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var isWeatherUnavailable: Bool {
