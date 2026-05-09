@@ -5,23 +5,96 @@ struct HomeScreenView: View {
     @ObservedObject private var appState = AppState.shared
 
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            if appState.nowPlayingEnabled {
-                HomeNowPlayingPanel()
-                    .frame(width: 228, alignment: .topLeading)
+        let panels = visiblePanels
 
-                homeDivider
+        VStack(spacing: 0) {
+            if panels.isEmpty {
+                HomeEmptyState(
+                    icon: "square.grid.2x2",
+                    title: "No home modules enabled",
+                    subtitle: "Enable modules in Settings to show them here.",
+                    fillsAvailableSpace: true
+                )
+            } else {
+                HStack(alignment: .top, spacing: 14) {
+                    ForEach(Array(panels.enumerated()), id: \.element.id) { index, panel in
+                        panelSlot(for: panel, visibleCount: panels.count)
+
+                        if index < panels.count - 1 {
+                            homeDivider
+                        }
+                    }
+                }
             }
-
-            HomeCalendarPanel()
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-
-            homeDivider
-
-            HomeWeatherPanel()
-                .frame(width: 150, alignment: .topLeading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private var visiblePanels: [HomePanel] {
+        var panels: [HomePanel] = []
+        if appState.nowPlayingEnabled {
+            panels.append(.nowPlaying)
+        }
+        if appState.calendarEnabled {
+            panels.append(.calendar)
+        }
+        if appState.weatherEnabled {
+            panels.append(.weather)
+        }
+        return panels
+    }
+
+    private func preferredPanelWidth(for panel: HomePanel, visibleCount: Int) -> CGFloat? {
+        guard visibleCount > 1 else { return nil }
+
+        switch panel {
+        case .nowPlaying:
+            return 360
+        case .calendar:
+            return 520
+        case .weather:
+            return 340
+        }
+    }
+
+    private func resolvedPanelWidth(for panel: HomePanel, visibleCount: Int, availableWidth: CGFloat) -> CGFloat {
+        guard let preferredWidth = preferredPanelWidth(for: panel, visibleCount: visibleCount) else {
+            return availableWidth
+        }
+        return min(preferredWidth, availableWidth)
+    }
+
+    private func panelSlot(for panel: HomePanel, visibleCount: Int) -> some View {
+        GeometryReader { geometry in
+            panelView(for: panel)
+                .frame(
+                    width: resolvedPanelWidth(
+                        for: panel,
+                        visibleCount: visibleCount,
+                        availableWidth: geometry.size.width
+                    ),
+                    height: geometry.size.height,
+                    alignment: .top
+                )
+                .frame(
+                    width: geometry.size.width,
+                    height: geometry.size.height,
+                    alignment: .top
+                )
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    @ViewBuilder
+    private func panelView(for panel: HomePanel) -> some View {
+        switch panel {
+        case .nowPlaying:
+            HomeNowPlayingPanel()
+        case .calendar:
+            HomeCalendarPanel()
+        case .weather:
+            HomeWeatherPanel()
+        }
     }
 
     private var homeDivider: some View {
@@ -30,6 +103,14 @@ struct HomeScreenView: View {
             .frame(width: 1)
             .padding(.vertical, 4)
     }
+}
+
+private enum HomePanel: String, Identifiable {
+    case nowPlaying
+    case calendar
+    case weather
+
+    var id: String { rawValue }
 }
 
 private struct HomeNowPlayingPanel: View {
@@ -68,6 +149,7 @@ private struct HomeNowPlayingPanel: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var albumArt: some View {
@@ -208,6 +290,7 @@ private struct HomeCalendarPanel: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var upcomingEvents: [EKEvent] {
@@ -312,6 +395,7 @@ private struct HomeWeatherPanel: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var isWeatherUnavailable: Bool {
@@ -419,6 +503,7 @@ private struct HomeEmptyState: View {
     let icon: String
     let title: String
     let subtitle: String
+    var fillsAvailableSpace = false
 
     var body: some View {
         VStack(spacing: 6) {
@@ -437,7 +522,11 @@ private struct HomeEmptyState: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: fillsAvailableSpace ? .infinity : nil,
+            alignment: .center
+        )
     }
 }
 
