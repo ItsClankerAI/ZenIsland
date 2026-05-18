@@ -1,10 +1,12 @@
 import AppKit
 import EventKit
 import SwiftUI
+import UserNotifications
 
 struct ModuleSettingsView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject private var calendarManager = CalendarManager.shared
+    @ObservedObject private var notificationManager = NotificationManager.shared
     @ObservedObject private var nowPlayingManager = NowPlayingManager.shared
     @ObservedObject private var shelf = ShelfStore.shared
 
@@ -96,7 +98,27 @@ struct ModuleSettingsView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 11)
                 SettingRowDivider()
-                SettingToggleRow(title: "Notifications", isOn: $appState.notificationsEnabled)
+                SettingToggleRow(title: "Notifications", isOn: notificationsEnabledBinding)
+                if appState.notificationsEnabled {
+                    SettingRowDivider()
+                    notificationPermissionRow
+                    SettingRowDivider()
+                    SettingToggleRow(
+                        title: "Show previews",
+                        description: "Display sender and message text when available.",
+                        isOn: notificationPreviewsBinding
+                    )
+                    SettingRowDivider()
+                    notificationRetentionRow
+                    ForEach(NotificationFeedSource.allCases) { source in
+                        SettingRowDivider()
+                        SettingToggleRow(
+                            title: source.title,
+                            description: source.description,
+                            isOn: notificationSourceBinding(for: source)
+                        )
+                    }
+                }
             }
 
             SettingSectionLabel(title: "Productivity")
@@ -117,8 +139,12 @@ struct ModuleSettingsView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .onAppear { calendarManager.refreshAccessStatus() }
+        .onAppear {
+            notificationManager.checkPermission()
+            calendarManager.refreshAccessStatus()
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            notificationManager.checkPermission()
             calendarManager.refreshAccessStatus()
         }
     }
@@ -143,6 +169,26 @@ struct ModuleSettingsView: View {
         .padding(.vertical, 11)
     }
 
+    private var notificationPermissionRow: some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Permission")
+                    .font(.system(size: 13))
+                Text(notificationPermissionDescription)
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 12)
+            Button(notificationPermissionButtonTitle) {
+                handleNotificationPermissionAction()
+            }
+            .font(.system(size: 12))
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 11)
+    }
+
     private var calendarLookaheadRow: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
@@ -158,6 +204,26 @@ struct ModuleSettingsView: View {
                 step: 1,
                 range: 1...30
             ) { "\(Int($0))d" }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 11)
+    }
+
+    private var notificationRetentionRow: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Retained items")
+                    .font(.system(size: 13))
+                Text("How many feed items stay available in the island.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+            }
+            Spacer(minLength: 12)
+            StepperField(
+                value: notificationMaxRetainedBinding,
+                step: 1,
+                range: 1...50
+            ) { "\(Int($0))" }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 11)
@@ -244,6 +310,54 @@ struct ModuleSettingsView: View {
         )
     }
 
+    private var notificationPreviewsBinding: Binding<Bool> {
+        Binding(
+            get: { appState.notificationPreviewsEnabled },
+            set: { newValue in
+                appState.notificationPreviewsEnabled = newValue
+                NotificationManager.shared.applyFeedPreferences()
+            }
+        )
+    }
+
+    private var notificationMaxRetainedBinding: Binding<Double> {
+        Binding(
+            get: { appState.notificationMaxRetainedItems },
+            set: { newValue in
+                appState.notificationMaxRetainedItems = newValue
+                NotificationManager.shared.applyFeedPreferences()
+            }
+        )
+    }
+
+    private var notificationsEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { appState.notificationsEnabled },
+            set: { newValue in
+                appState.notificationsEnabled = newValue
+                guard newValue else {
+                    NotificationManager.shared.clearAll()
+                    return
+                }
+
+                NotificationManager.shared.checkPermission()
+                if NotificationManager.shared.authorizationStatus == .notDetermined {
+                    NotificationManager.shared.requestPermission()
+                }
+            }
+        )
+    }
+
+    private func notificationSourceBinding(for source: NotificationFeedSource) -> Binding<Bool> {
+        Binding(
+            get: { appState.isNotificationSourceEnabled(source) },
+            set: { newValue in
+                appState.setNotificationSource(source, enabled: newValue)
+                NotificationManager.shared.applyFeedPreferences()
+            }
+        )
+    }
+
     private var calendarPermissionDescription: String {
         switch calendarManager.authorizationStatus {
         case .fullAccess, .authorized:
@@ -261,8 +375,32 @@ struct ModuleSettingsView: View {
         }
     }
 
+    private var notificationPermissionDescription: String {
+        switch notificationManager.authorizationStatus {
+        case .authorized:
+            return "Allowed. SuperIsland can send its own notifications and extension alerts."
+        case .denied:
+            return "Denied. Open System Settings to allow SuperIsland notifications."
+        case .notDetermined:
+            return "Not requested. Allow this when you want SuperIsland or extensions to send macOS notifications."
+        case .provisional, .ephemeral:
+            return "Allowed with limited delivery."
+        @unknown default:
+            return "Unknown. Check macOS notification settings."
+        }
+    }
+
     private var calendarPermissionButtonTitle: String {
         switch calendarManager.authorizationStatus {
+        case .notDetermined:
+            return "Request"
+        default:
+            return "Open Settings"
+        }
+    }
+
+    private var notificationPermissionButtonTitle: String {
+        switch notificationManager.authorizationStatus {
         case .notDetermined:
             return "Request"
         default:
@@ -276,6 +414,15 @@ struct ModuleSettingsView: View {
             calendarManager.requestAccess()
         default:
             calendarManager.openCalendarSettings()
+        }
+    }
+
+    private func handleNotificationPermissionAction() {
+        switch notificationManager.authorizationStatus {
+        case .notDetermined:
+            notificationManager.requestPermission()
+        default:
+            notificationManager.openNotificationSettings()
         }
     }
 

@@ -1,7 +1,7 @@
 import Foundation
 import JavaScriptCore
 import AppKit
-import UserNotifications
+@preconcurrency import UserNotifications
 
 final class ExtensionJSRuntime {
     enum RuntimeError: LocalizedError {
@@ -321,20 +321,22 @@ final class ExtensionJSRuntime {
             let shouldShowSystemNotification = options.forProperty("systemNotification")?.isBoolean == true
                 ? (options.forProperty("systemNotification")?.toBool() ?? true)
                 : true
-            self.sendNotification(
-                title: title,
-                body: body,
-                sound: sound,
-                appName: appName,
-                bundleIdentifier: bundleIdentifier,
-                senderName: senderName,
-                previewText: previewText,
-                avatarURL: avatarURL,
-                appIconURL: appIconURL,
-                sourceID: sourceID,
-                tapAction: tapAction,
-                shouldShowSystemNotification: shouldShowSystemNotification
-            )
+            Task { @MainActor [weak self] in
+                self?.sendNotification(
+                    title: title,
+                    body: body,
+                    sound: sound,
+                    appName: appName,
+                    bundleIdentifier: bundleIdentifier,
+                    senderName: senderName,
+                    previewText: previewText,
+                    avatarURL: avatarURL,
+                    appIconURL: appIconURL,
+                    sourceID: sourceID,
+                    tapAction: tapAction,
+                    shouldShowSystemNotification: shouldShowSystemNotification
+                )
+            }
         }
 
         notifications.setObject(send, forKeyedSubscript: "send" as NSString)
@@ -1004,6 +1006,7 @@ final class ExtensionJSRuntime {
         ], in: context)
     }
 
+    @MainActor
     private func sendNotification(
         title: String,
         body: String,
@@ -1018,10 +1021,10 @@ final class ExtensionJSRuntime {
         tapAction: NotificationTapAction?,
         shouldShowSystemNotification: Bool
     ) {
-        let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .sound]) { _, _ in }
+        let extensionsSourceEnabled = AppState.shared.notificationsEnabled
+            && AppState.shared.isNotificationSourceEnabled(.extensions)
 
-        if manifest.capabilities.notificationFeed {
+        if manifest.capabilities.notificationFeed, extensionsSourceEnabled {
             let resolvedAppName = appName ?? manifest.name
             let resolvedBundleIdentifier = bundleIdentifier ?? extensionID
             let resolvedSenderName = senderName ?? (title.isEmpty ? nil : title)
@@ -1050,7 +1053,8 @@ final class ExtensionJSRuntime {
             }
         }
 
-        if shouldShowSystemNotification {
+        if shouldShowSystemNotification, extensionsSourceEnabled {
+            let center = UNUserNotificationCenter.current()
             let content = UNMutableNotificationContent()
             content.title = title
             content.body = body
@@ -1061,7 +1065,21 @@ final class ExtensionJSRuntime {
                 content: content,
                 trigger: UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
             )
-            center.add(request)
+            center.getNotificationSettings { settings in
+                switch settings.authorizationStatus {
+                case .authorized, .provisional, .ephemeral:
+                    center.add(request)
+                case .notDetermined:
+                    center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+                        guard granted else { return }
+                        center.add(request)
+                    }
+                case .denied:
+                    break
+                @unknown default:
+                    break
+                }
+            }
         }
     }
 
@@ -1070,13 +1088,14 @@ final class ExtensionJSRuntime {
         guard let latest = NotificationManager.shared.latestNotification else {
             return nil
         }
-        return notificationPayload(from: latest)
+        return notificationPayload(from: NotificationManager.shared.displayNotification(latest))
     }
 
     @MainActor
     private func recentNotificationPayloads(limit: Int) -> [[String: Any]] {
         NotificationManager.shared.recentNotifications
             .prefix(limit)
+            .map { NotificationManager.shared.displayNotification($0) }
             .map(notificationPayload(from:))
     }
 
