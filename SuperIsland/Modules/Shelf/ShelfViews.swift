@@ -276,8 +276,6 @@ private struct TrayDropPane: View {
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
-                        Spacer(minLength: 0)
-
                         ScrollViewReader { proxy in
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 18) {
@@ -289,7 +287,7 @@ private struct TrayDropPane: View {
                                 .padding(.horizontal, 4)
                                 .frame(maxHeight: .infinity, alignment: .center)
                             }
-                            .frame(height: 88)
+                            .frame(maxHeight: .infinity)
                             .onAppear {
                                 scrollToLatest(using: proxy, animated: false)
                             }
@@ -297,11 +295,10 @@ private struct TrayDropPane: View {
                                 scrollToLatest(using: proxy, animated: true)
                             }
                         }
-
-                        Spacer(minLength: 0)
                     }
                 }
                 .padding(14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
         }
         .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -442,16 +439,16 @@ private struct TrayItemTile: View {
                 Text(item.displayName)
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.white)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
                     .frame(width: 104)
 
                 Text(item.subtitle)
                     .font(.system(size: 9, weight: .medium))
                     .foregroundStyle(.white.opacity(0.46))
                     .lineLimit(1)
+                    .truncationMode(.tail)
                     .frame(width: 104)
-                    .multilineTextAlignment(.center)
             }
         }
         .frame(width: 116, height: 82, alignment: .top)

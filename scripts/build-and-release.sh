@@ -43,7 +43,8 @@ xcodebuild archive \
   -destination "generic/platform=macOS" \
   SKIP_INSTALL=NO \
   SWIFT_VERIFY_EMITTED_MODULE_INTERFACE=NO \
-  CODE_SIGN_STYLE=Automatic \
+  CODE_SIGN_STYLE=Manual \
+  CODE_SIGN_IDENTITY="-" \
   DEVELOPMENT_TEAM="${TEAM_ID}" \
   ENABLE_HARDENED_RUNTIME=YES
 

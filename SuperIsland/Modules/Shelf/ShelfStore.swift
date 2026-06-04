@@ -632,20 +632,40 @@ final class ShelfStore: ObservableObject {
     }
 
     private static func extractItem(from provider: NSItemProvider) async -> ShelfItem? {
+        NSLog("[Shelf] provider types=%@ suggestedName=%@",
+              provider.registeredTypeIdentifiers,
+              provider.suggestedName ?? "<nil>")
+
         if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier),
            let url = await loadURL(from: provider, type: .fileURL),
            url.isFileURL {
+            NSLog("[Shelf] fileURL branch → %@", url.lastPathComponent)
             return .file(from: url)
         }
 
         if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier),
            let url = await loadURL(from: provider, type: .url) {
+            NSLog("[Shelf] url branch → %@", url.absoluteString)
             return url.isFileURL ? .file(from: url) : .link(url)
+        }
+
+        // Promised-file drag (Finder advertises only the content type, not
+        // public.file-url). loadFileRepresentation resolves it to a temp URL
+        // with the original filename, which we copy into shelf storage.
+        if let imageTypeIdentifier = provider.registeredTypeIdentifiers.first(where: { identifier in
+            guard let type = UTType(identifier) else { return false }
+            return type.conforms(to: .image)
+        }) {
+            if let url = await loadPromisedFile(from: provider, typeIdentifier: imageTypeIdentifier) {
+                NSLog("[Shelf] promised-image branch → %@", url.lastPathComponent)
+                return .file(from: url)
+            }
         }
 
         if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier),
            let data = await loadData(from: provider, type: .image),
-           let item = imageItem(from: data, type: .image) {
+           let item = imageItem(from: data, type: .image, suggestedName: provider.suggestedName) {
+            NSLog("[Shelf] image branch → %@", item.displayName)
             return item
         }
 
@@ -668,7 +688,7 @@ final class ShelfStore: ObservableObject {
         return nil
     }
 
-    private static func imageItem(from data: Data, type: UTType) -> ShelfItem? {
+    private static func imageItem(from data: Data, type: UTType, suggestedName: String? = nil) -> ShelfItem? {
         guard data.count <= 20 * 1024 * 1024,
               let storageURL = imageStorageURL else {
             return nil
@@ -680,9 +700,20 @@ final class ShelfStore: ObservableObject {
             let fileExtension = type.preferredFilenameExtension ?? "png"
             let fileURL = storageURL.appendingPathComponent("\(UUID().uuidString).\(fileExtension)")
             try data.write(to: fileURL, options: [.atomic])
+            let trimmedName = suggestedName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let display: String
+            if trimmedName.isEmpty {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd 'at' HH.mm.ss"
+                display = "Image \(formatter.string(from: Date())).\(fileExtension)"
+            } else if (trimmedName as NSString).pathExtension.isEmpty {
+                display = "\(trimmedName).\(fileExtension)"
+            } else {
+                display = trimmedName
+            }
             return ShelfItem(
                 kind: .image,
-                displayName: "Image",
+                displayName: display,
                 path: fileURL.path
             )
         } catch {
@@ -762,6 +793,39 @@ final class ShelfStore: ObservableObject {
                 }
 
                 continuation.resume(returning: data)
+            }
+        }
+    }
+
+    /// Resolves a promised file drop into a usable on-disk URL with the
+    /// original filename. Used when Finder advertises only a content type
+    /// (e.g. public.jpeg) instead of public.file-url — in that case the
+    /// system delivers the file via a temp URL whose lastPathComponent is
+    /// the original name. We copy it into our shelf storage so it survives
+    /// past the closure's lifetime.
+    private static func loadPromisedFile(from provider: NSItemProvider, typeIdentifier: String) async -> URL? {
+        await withCheckedContinuation { continuation in
+            provider.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { tempURL, error in
+                guard let tempURL, error == nil else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                guard let storageURL = imageStorageURL else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                let fm = FileManager.default
+                do {
+                    let bucket = storageURL.appendingPathComponent(UUID().uuidString, isDirectory: true)
+                    try fm.createDirectory(at: bucket, withIntermediateDirectories: true)
+                    let destURL = bucket.appendingPathComponent(tempURL.lastPathComponent)
+                    try fm.copyItem(at: tempURL, to: destURL)
+                    continuation.resume(returning: destURL)
+                } catch {
+                    continuation.resume(returning: nil)
+                }
             }
         }
     }

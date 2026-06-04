@@ -1175,15 +1175,22 @@ final class NowPlayingManager: ObservableObject {
         isPlaying = shouldPlay
         updatePlaybackTimer()
 
+        // Browser playback is checked first because the MediaRemote command
+        // path doesn't reliably control browser-tab <video>/<audio> elements
+        // even when Chrome's MediaSession registers with MediaRemote. JS
+        // injection talks to the element directly.
+        if isBrowserPlaybackSource {
+            if controlChromePlayback(shouldPlay: shouldPlay) {
+                refreshPlaybackStateAfterControlAction(preferChromeRefresh: true)
+                return
+            }
+            // Fall through to MR/AppleScript if JS injection failed (e.g.
+            // Chrome "Allow JavaScript from Apple Events" disabled).
+        }
+
         if shouldUseMediaRemoteControls {
             _ = sendCommandFunc?(shouldPlay ? kMRPlay : kMRPause, nil)
             refreshPlaybackStateAfterControlAction()
-            return
-        }
-
-        if isBrowserPlaybackSource {
-            _ = controlChromePlayback(shouldPlay: shouldPlay)
-            refreshPlaybackStateAfterControlAction(preferChromeRefresh: true)
             return
         }
 
