@@ -6,11 +6,12 @@ struct AppearanceSettingsView: View {
     // Canonical defaults — source of truth for the per-section Reset buttons
     // and for the @AppStorage initial values in AppState.
     private enum Defaults {
-        static let bounceAmount: Double = 0.25
-        static let animationLevel = AnimationLevel.full
+        static let bounceAmount: Double = 0.18
+        static let animationLevel = AnimationLevel.subtle
         static let reduceMotion = false
-        static let compactIslandWidth: Double = 200
-        static let compactIslandHeight: Double = 36
+        static let compactIslandWidth: Double = 218
+        static let compactIslandHeight: Double = 44
+        static let mediaProgressOutlineEnabled = true
     }
 
     var body: some View {
@@ -89,6 +90,19 @@ struct AppearanceSettingsView: View {
                     step: 1,
                     range: 28...60,
                     unit: "pt"
+                )
+            }
+
+            section(
+                title: "Media",
+                reset: {
+                    appState.mediaProgressOutlineEnabled = Defaults.mediaProgressOutlineEnabled
+                }
+            ) {
+                SettingToggleRow(
+                    title: "Progress outline",
+                    description: "Show playback progress around the compact notch",
+                    isOn: $appState.mediaProgressOutlineEnabled
                 )
             }
         }

@@ -232,6 +232,9 @@ final class AppState: ObservableObject {
             if oldValue != currentState {
                 didChangeState?(oldValue, currentState)
             }
+            if currentState != .compact {
+                setCompactMediaControlsExpanded(false)
+            }
             handleStateTransition(from: oldValue, to: currentState)
             refreshEnergyState()
         }
@@ -246,6 +249,7 @@ final class AppState: ObservableObject {
     @Published var isHovering: Bool = false {
         didSet { refreshEnergyState() }
     }
+    @Published private(set) var compactMediaControlsExpanded = false
     @Published private(set) var isAppActive: Bool = true
     @Published private(set) var isShelfDragActive = false
     /// Set by IslandWindowController during overshoot animations to prevent
@@ -256,14 +260,14 @@ final class AppState: ObservableObject {
     @Published private(set) var presentationNotchRect: NSRect? = nil
     // Module enabled states (persisted via UserDefaults)
     @AppStorage("module.nowPlaying.enabled") var nowPlayingEnabled = true
-    @AppStorage("module.volumeHUD.enabled") var volumeHUDEnabled = true
+    @AppStorage("module.volumeHUD.enabled") var volumeHUDEnabled = false
     @AppStorage("module.battery.enabled") var batteryEnabled = true
     @AppStorage("module.shelf.enabled") var shelfEnabled = true
-    @AppStorage("module.connectivity.enabled") var connectivityEnabled = true
+    @AppStorage("module.connectivity.enabled") var connectivityEnabled = false
     @AppStorage("module.calendar.enabled") var calendarEnabled = true
-    @AppStorage("module.weather.enabled") var weatherEnabled = true
+    @AppStorage("module.weather.enabled") var weatherEnabled = false
     @AppStorage("module.weather.temperatureUnit") var temperatureUnit: TemperatureUnit = .celsius
-    @AppStorage("module.notifications.enabled") var notificationsEnabled = true
+    @AppStorage("module.notifications.enabled") var notificationsEnabled = false
     @AppStorage("module.notifications.showPreviews") var notificationPreviewsEnabled = true
     @AppStorage("module.notifications.maxRetainedItems") var notificationMaxRetainedItems: Double = 10
     @AppStorage("module.notifications.enabledSources") private var notificationEnabledSourcesRaw = NotificationFeedSource.defaultEnabledRawValue
@@ -273,15 +277,16 @@ final class AppState: ObservableObject {
 
     // Appearance settings
     @AppStorage("appearance.animationSpeed") var animationSpeed: Double = 1.0
-    @AppStorage("appearance.bounceAmount") var bounceAmount: Double = 0.25
-    @AppStorage("appearance.animationLevel") var animationLevelRaw = AnimationLevel.full.rawValue
+    @AppStorage("appearance.bounceAmount") var bounceAmount: Double = 0.18
+    @AppStorage("appearance.animationLevel") var animationLevelRaw = AnimationLevel.subtle.rawValue
     @AppStorage("appearance.reduceMotion") var reduceMotion = false
-    @AppStorage("appearance.compactIslandWidth") var compactIslandWidth: Double = 200
-    @AppStorage("appearance.compactIslandHeight") var compactIslandHeight: Double = 36
+    @AppStorage("appearance.compactIslandWidth") var compactIslandWidth: Double = 218
+    @AppStorage("appearance.compactIslandHeight") var compactIslandHeight: Double = 44
+    @AppStorage("appearance.mediaProgressOutline.enabled") var mediaProgressOutlineEnabled = true
 
     @AppStorage("home.leadingPanel") var homeLeadingPanelRaw = HomePanel.nowPlaying.rawValue
     @AppStorage("home.centerPanel") var homeCenterPanelRaw = HomePanel.calendar.rawValue
-    @AppStorage("home.trailingPanel") var homeTrailingPanelRaw = HomePanel.weather.rawValue
+    @AppStorage("home.trailingPanel") var homeTrailingPanelRaw = HomePanel.none.rawValue
 
     // General settings
     @AppStorage("general.showMenuBarIcon") var showMenuBarIcon = true
@@ -312,6 +317,7 @@ final class AppState: ObservableObject {
     private var autoDismissWorkItem: DispatchWorkItem?
     private var fullExpandedDismissWorkItem: DispatchWorkItem?
     private var hoverActivationWorkItem: DispatchWorkItem?
+    private var compactMediaControlsCollapseWorkItem: DispatchWorkItem?
     private var systemEmojiInteractionWorkItem: DispatchWorkItem?
     private var systemEmojiInteractionExpiry: Date?
     private var lastNotchEntryHapticDate: Date = .distantPast
@@ -673,6 +679,68 @@ final class AppState: ObservableObject {
     func cancelHoverActivation() {
         hoverActivationWorkItem?.cancel()
         hoverActivationWorkItem = nil
+    }
+
+    var canShowCompactMediaControls: Bool {
+        guard currentState == .compact,
+              let module = compactPresentationModule else {
+            return false
+        }
+
+        if case .builtIn(.nowPlaying) = module {
+            return nowPlayingEnabled
+        }
+        return false
+    }
+
+    var compactMediaControlsTrailingExpansion: CGFloat {
+        compactMediaControlsExpanded && canShowCompactMediaControls
+            ? Constants.compactMediaControlsTrailingExpansion
+            : 0
+    }
+
+    var compactMediaBodySize: CGSize {
+        guard currentState == .compact else { return currentSize }
+        return CGSize(
+            width: max(0, currentSize.width - compactMediaControlsTrailingExpansion),
+            height: currentSize.height
+        )
+    }
+
+    func setCompactMediaControlsHover(_ hovering: Bool) {
+        compactMediaControlsCollapseWorkItem?.cancel()
+        compactMediaControlsCollapseWorkItem = nil
+
+        guard canShowCompactMediaControls else {
+            setCompactMediaControlsExpanded(false)
+            return
+        }
+
+        if hovering {
+            cancelHoverActivation()
+            cancelAutoDismiss()
+            cancelFullExpandedDismiss()
+            beginCompactControlInteraction(timeout: 0.75)
+            setCompactMediaControlsExpanded(true)
+            return
+        }
+
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.setCompactMediaControlsExpanded(false)
+            self?.compactMediaControlsCollapseWorkItem = nil
+        }
+        compactMediaControlsCollapseWorkItem = workItem
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + Constants.compactMediaControlsCollapseDelay,
+            execute: workItem
+        )
+    }
+
+    private func setCompactMediaControlsExpanded(_ expanded: Bool) {
+        guard compactMediaControlsExpanded != expanded else { return }
+        withAnimation(hoverAnimation) {
+            compactMediaControlsExpanded = expanded
+        }
     }
 
     var isSystemEmojiInteractionActive: Bool {
@@ -1058,7 +1126,7 @@ final class AppState: ObservableObject {
             }
 
             return CGSize(
-                width: baseSize.width + (compactMinimalSideExpansion * 2),
+                width: baseSize.width + (compactMinimalSideExpansion * 2) + compactMediaControlsTrailingExpansion,
                 height: baseSize.height
             )
         case .expanded:

@@ -1,7 +1,9 @@
+import AppKit
 import SwiftUI
 
 struct IslandContainerView: View {
     @EnvironmentObject var appState: AppState
+    @ObservedObject private var nowPlaying = NowPlayingManager.shared
     @State private var isHoveringIslandSurface = false
     @State private var isHoveringPreviousButton = false
     @State private var isHoveringNextButton = false
@@ -73,6 +75,8 @@ struct IslandContainerView: View {
                 islandShape
                     .stroke(Color.accentColor.opacity(0.92), style: StrokeStyle(lineWidth: 3, dash: [10]))
                     .padding(1)
+            } else {
+                mediaProgressOutline
             }
         }
         .contentShape(islandShape)
@@ -180,6 +184,84 @@ struct IslandContainerView: View {
 
     private var islandSurfaceAnimation: Animation {
         appState.shouldReduceAnimations ? .easeOut(duration: 0.12) : .spring(response: 0.48, dampingFraction: 0.8)
+    }
+
+    @ViewBuilder
+    private var mediaProgressOutline: some View {
+        if shouldShowMediaProgressOutline {
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                if let progress = mediaProgress(at: context.date) {
+                    mediaProgressRail(progress: progress)
+                }
+            }
+        }
+    }
+
+    private func mediaProgressRail(progress: CGFloat) -> some View {
+        let bodySize = appState.compactMediaBodySize
+
+        return MediaProgressRailShape(
+            topLeadingRadius: appState.currentTopLeadingCornerRadius,
+            topTrailingRadius: appState.currentTopTrailingCornerRadius,
+            bottomLeadingRadius: appState.currentBottomLeadingCornerRadius,
+            bottomTrailingRadius: appState.currentBottomTrailingCornerRadius
+        )
+            .trim(from: 0, to: progress)
+            .stroke(mediaProgressColor, style: mediaProgressStrokeStyle(lineWidth: 2.4))
+            .padding(1.4)
+            .frame(width: bodySize.width, height: bodySize.height)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .allowsHitTesting(false)
+            .animation(mediaProgressAnimation, value: progress)
+            .transition(.opacity)
+    }
+
+    private var shouldShowMediaProgressOutline: Bool {
+        appState.mediaProgressOutlineEnabled &&
+        appState.nowPlayingEnabled &&
+        appState.currentState == .compact &&
+        isActiveMediaProgressStatus &&
+        nowPlaying.duration > 0 &&
+        nowPlaying.elapsedTime >= 0
+    }
+
+    private func mediaProgress(at date: Date) -> CGFloat? {
+        guard appState.mediaProgressOutlineEnabled,
+              appState.nowPlayingEnabled,
+              appState.currentState == .compact,
+              isActiveMediaProgressStatus,
+              nowPlaying.duration > 0,
+              nowPlaying.elapsedTime >= 0 else {
+            return nil
+        }
+
+        let progress = nowPlaying.progress(at: date)
+        guard progress.isFinite, progress > 0.001 else { return nil }
+        return CGFloat(min(max(progress, 0), 1))
+    }
+
+    private var isActiveMediaProgressStatus: Bool {
+        switch nowPlaying.providerStatus {
+        case .playing, .paused:
+            return true
+        case .idle, .checking, .stale, .browserDisabled, .permissionNeeded, .unavailable:
+            return false
+        }
+    }
+
+    private var mediaProgressColor: Color {
+        if let albumArtColor = nowPlaying.albumArtColor {
+            return Color(nsColor: albumArtColor).opacity(0.95)
+        }
+        return Color.accentColor.opacity(0.95)
+    }
+
+    private func mediaProgressStrokeStyle(lineWidth: CGFloat) -> StrokeStyle {
+        StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round)
+    }
+
+    private var mediaProgressAnimation: Animation? {
+        appState.shouldReduceAnimations ? nil : Constants.progressBar
     }
 
     // MARK: - Expanded Layout
@@ -448,5 +530,84 @@ private struct IslandSurfaceSwipeModifier: ViewModifier {
         } else {
             content
         }
+    }
+}
+
+private struct MediaProgressRailShape: Shape {
+    var topLeadingRadius: CGFloat
+    var topTrailingRadius: CGFloat
+    var bottomLeadingRadius: CGFloat
+    var bottomTrailingRadius: CGFloat
+
+    var animatableData: AnimatablePair<
+        AnimatablePair<CGFloat, CGFloat>,
+        AnimatablePair<CGFloat, CGFloat>
+    > {
+        get {
+            AnimatablePair(
+                AnimatablePair(topLeadingRadius, topTrailingRadius),
+                AnimatablePair(bottomLeadingRadius, bottomTrailingRadius)
+            )
+        }
+        set {
+            topLeadingRadius = newValue.first.first
+            topTrailingRadius = newValue.first.second
+            bottomLeadingRadius = newValue.second.first
+            bottomTrailingRadius = newValue.second.second
+        }
+    }
+
+    func path(in rect: CGRect) -> Path {
+        let maxOuterRadius = min(rect.width, rect.height) / 2
+        let topLeading = min(max(topLeadingRadius, 0), maxOuterRadius)
+        let topTrailing = min(max(topTrailingRadius, 0), maxOuterRadius)
+        let bottomLeading = min(max(bottomLeadingRadius, 0), maxOuterRadius)
+        let bottomTrailing = min(max(bottomTrailingRadius, 0), maxOuterRadius)
+        let leftWallX = rect.minX + topLeading
+        let rightWallX = rect.maxX - topTrailing
+
+        var path = Path()
+
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        if topLeading > 0 {
+            path.addQuadCurve(
+                to: CGPoint(x: leftWallX, y: rect.minY + topLeading),
+                control: CGPoint(x: leftWallX, y: rect.minY)
+            )
+        } else {
+            path.addLine(to: CGPoint(x: leftWallX, y: rect.minY))
+        }
+
+        path.addLine(to: CGPoint(x: leftWallX, y: rect.maxY - bottomLeading))
+        if bottomLeading > 0 {
+            path.addQuadCurve(
+                to: CGPoint(x: leftWallX + bottomLeading, y: rect.maxY),
+                control: CGPoint(x: leftWallX, y: rect.maxY)
+            )
+        } else {
+            path.addLine(to: CGPoint(x: leftWallX, y: rect.maxY))
+        }
+
+        path.addLine(to: CGPoint(x: rightWallX - bottomTrailing, y: rect.maxY))
+        if bottomTrailing > 0 {
+            path.addQuadCurve(
+                to: CGPoint(x: rightWallX, y: rect.maxY - bottomTrailing),
+                control: CGPoint(x: rightWallX, y: rect.maxY)
+            )
+        } else {
+            path.addLine(to: CGPoint(x: rightWallX, y: rect.maxY))
+        }
+
+        path.addLine(to: CGPoint(x: rightWallX, y: rect.minY + topTrailing))
+        if topTrailing > 0 {
+            path.addQuadCurve(
+                to: CGPoint(x: rect.maxX, y: rect.minY),
+                control: CGPoint(x: rightWallX, y: rect.minY)
+            )
+        } else {
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        }
+
+        return path
     }
 }

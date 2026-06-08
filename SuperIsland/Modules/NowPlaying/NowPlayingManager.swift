@@ -115,7 +115,7 @@ final class NowPlayingManager: ObservableObject {
     private var adapterPipeHandler: JSONLinesPipeHandler?
     private var adapterStreamTask: Task<Void, Never>?
     private var adapterDidDeliverUpdate = false
-    private let appleScriptQueue = DispatchQueue(label: "superisland.applescript", qos: .userInitiated)
+    private let appleScriptQueue = DispatchQueue(label: "zenbar.applescript", qos: .userInitiated)
 
     private init() {
         loadMediaRemote()
@@ -286,6 +286,7 @@ final class NowPlayingManager: ObservableObject {
                 self.elapsedTime = info[kMRMediaRemoteNowPlayingInfoElapsedTime] as? TimeInterval ?? 0
                 self.playbackRate = newPlaybackRate
                 self.isPlaying = newIsPlaying
+                self.lastPlaybackUpdateDate = Date()
                 self.sourceName = "System Media"
                 self.providerStatus = newIsPlaying ? .playing("System Media") : .paused("System Media")
 
@@ -313,7 +314,12 @@ final class NowPlayingManager: ObservableObject {
     private func fetchPlaybackState() {
         getIsPlayingFunc?(DispatchQueue.main) { [weak self] playing in
             guard let self else { return }
+            let now = Date()
+            if self.isPlaying && !playing, self.duration > 0 {
+                self.elapsedTime = self.progress(at: now) * self.duration
+            }
             self.isPlaying = playing
+            self.lastPlaybackUpdateDate = now
             self.providerStatus = playing ? .playing(self.sourceName) : .paused(self.sourceName)
             self.updatePlaybackTimer()
         }
@@ -1150,6 +1156,7 @@ final class NowPlayingManager: ObservableObject {
         lastPlaybackTickDate = now
 
         elapsedTime += min(max(delta, 0.5), 5) * max(playbackRate, 1)
+        lastPlaybackUpdateDate = now
         if elapsedTime >= duration {
             elapsedTime = duration
             updatePlaybackTimer()
@@ -1170,9 +1177,14 @@ final class NowPlayingManager: ObservableObject {
         }
 
         let shouldPlay = !isPlaying
+        let now = Date()
+        if isPlaying && !shouldPlay, duration > 0 {
+            elapsedTime = progress(at: now) * duration
+        }
 
         // Immediately toggle local state for responsive UI
         isPlaying = shouldPlay
+        lastPlaybackUpdateDate = now
         updatePlaybackTimer()
 
         // Browser playback is checked first because the MediaRemote command
@@ -1244,6 +1256,7 @@ final class NowPlayingManager: ObservableObject {
     func seek(to time: TimeInterval) {
         let clampedTime = max(0, min(time, duration))
         elapsedTime = clampedTime
+        lastPlaybackUpdateDate = Date()
         updatePlaybackTimer()
 
         if shouldUseMediaRemoteControls {
@@ -1275,6 +1288,20 @@ final class NowPlayingManager: ObservableObject {
     var progress: Double {
         guard duration > 0 else { return 0 }
         return elapsedTime / duration
+    }
+
+    func progress(at date: Date) -> Double {
+        guard duration > 0 else { return 0 }
+
+        let resolvedElapsedTime: TimeInterval
+        if isPlaying {
+            let delta = max(0, date.timeIntervalSince(lastPlaybackUpdateDate))
+            resolvedElapsedTime = elapsedTime + (delta * max(playbackRate, 1))
+        } else {
+            resolvedElapsedTime = elapsedTime
+        }
+
+        return clampElapsedTime(resolvedElapsedTime, duration: duration) / duration
     }
 
     var browserTargets: [NowPlayingBrowserTarget] {

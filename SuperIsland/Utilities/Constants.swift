@@ -23,6 +23,8 @@ enum Constants {
     static let compactMinimalSideExpansion: CGFloat = 56
     static let compactMinimalHorizontalPadding: CGFloat = 14
     static let compactMinimalSafeSideMargin: CGFloat = 24
+    static let compactMediaControlsTrailingExpansion: CGFloat = 100
+    static let compactMediaControlsCollapseDelay: TimeInterval = 0.18
     static let expandedTopInset: CGFloat = 0
     static let compactCornerRadius: CGFloat = 18
     static let expandedCornerRadius: CGFloat = 22
