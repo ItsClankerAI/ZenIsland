@@ -232,9 +232,6 @@ final class AppState: ObservableObject {
             if oldValue != currentState {
                 didChangeState?(oldValue, currentState)
             }
-            if currentState != .compact {
-                setCompactMediaControlsExpanded(false)
-            }
             handleStateTransition(from: oldValue, to: currentState)
             refreshEnergyState()
         }
@@ -249,7 +246,6 @@ final class AppState: ObservableObject {
     @Published var isHovering: Bool = false {
         didSet { refreshEnergyState() }
     }
-    @Published private(set) var compactMediaControlsExpanded = false
     @Published private(set) var isAppActive: Bool = true
     @Published private(set) var isShelfDragActive = false
     /// Set by IslandWindowController during overshoot animations to prevent
@@ -317,7 +313,6 @@ final class AppState: ObservableObject {
     private var autoDismissWorkItem: DispatchWorkItem?
     private var fullExpandedDismissWorkItem: DispatchWorkItem?
     private var hoverActivationWorkItem: DispatchWorkItem?
-    private var compactMediaControlsCollapseWorkItem: DispatchWorkItem?
     private var systemEmojiInteractionWorkItem: DispatchWorkItem?
     private var systemEmojiInteractionExpiry: Date?
     private var lastNotchEntryHapticDate: Date = .distantPast
@@ -681,66 +676,9 @@ final class AppState: ObservableObject {
         hoverActivationWorkItem = nil
     }
 
-    var canShowCompactMediaControls: Bool {
-        guard currentState == .compact,
-              let module = compactPresentationModule else {
-            return false
-        }
-
-        if case .builtIn(.nowPlaying) = module {
-            return nowPlayingEnabled
-        }
-        return false
-    }
-
-    var compactMediaControlsTrailingExpansion: CGFloat {
-        compactMediaControlsExpanded && canShowCompactMediaControls
-            ? Constants.compactMediaControlsTrailingExpansion
-            : 0
-    }
-
     var compactMediaBodySize: CGSize {
         guard currentState == .compact else { return currentSize }
-        return CGSize(
-            width: max(0, currentSize.width - compactMediaControlsTrailingExpansion),
-            height: currentSize.height
-        )
-    }
-
-    func setCompactMediaControlsHover(_ hovering: Bool) {
-        compactMediaControlsCollapseWorkItem?.cancel()
-        compactMediaControlsCollapseWorkItem = nil
-
-        guard canShowCompactMediaControls else {
-            setCompactMediaControlsExpanded(false)
-            return
-        }
-
-        if hovering {
-            cancelHoverActivation()
-            cancelAutoDismiss()
-            cancelFullExpandedDismiss()
-            beginCompactControlInteraction(timeout: 0.75)
-            setCompactMediaControlsExpanded(true)
-            return
-        }
-
-        let workItem = DispatchWorkItem { [weak self] in
-            self?.setCompactMediaControlsExpanded(false)
-            self?.compactMediaControlsCollapseWorkItem = nil
-        }
-        compactMediaControlsCollapseWorkItem = workItem
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + Constants.compactMediaControlsCollapseDelay,
-            execute: workItem
-        )
-    }
-
-    private func setCompactMediaControlsExpanded(_ expanded: Bool) {
-        guard compactMediaControlsExpanded != expanded else { return }
-        withAnimation(hoverAnimation) {
-            compactMediaControlsExpanded = expanded
-        }
+        return currentSize
     }
 
     var isSystemEmojiInteractionActive: Bool {
@@ -1126,7 +1064,7 @@ final class AppState: ObservableObject {
             }
 
             return CGSize(
-                width: baseSize.width + (compactMinimalSideExpansion * 2) + compactMediaControlsTrailingExpansion,
+                width: baseSize.width + (compactMinimalSideExpansion * 2),
                 height: baseSize.height
             )
         case .expanded:

@@ -183,14 +183,8 @@ final class IslandWindowController {
         }
 
         let x = anchorX - size.width / 2
-            + compactRightAnchoredOffset()
         let y = anchorY - size.height
         panel.setFrame(NSRect(x: x, y: y, width: size.width, height: size.height), display: display)
-    }
-
-    private func compactRightAnchoredOffset() -> CGFloat {
-        guard appState.currentState == .compact else { return 0 }
-        return appState.compactMediaControlsTrailingExpansion / 2
     }
 
     /// Apply the given size to every active panel, each sized against its own screen.
@@ -311,13 +305,6 @@ final class IslandWindowController {
             }
             .store(in: &cancellables)
 
-        appState.$compactMediaControlsExpanded
-            .removeDuplicates()
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                self?.updateCompactFrameIfNeeded()
-            }
-            .store(in: &cancellables)
     }
 
     private func updateCompactFrameIfNeeded() {

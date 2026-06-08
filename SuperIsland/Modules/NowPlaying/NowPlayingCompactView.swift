@@ -189,12 +189,8 @@ struct NowPlayingPlaybackCompactButton: View {
 
     var body: some View {
         collapsedPlaybackHint
-        .frame(width: 22, height: 34, alignment: .trailing)
-        .contentShape(Rectangle())
-        .onHover { hovering in
-            appState.setCompactMediaControlsHover(hovering)
-        }
-        .animation(appState.hoverAnimation, value: appState.compactMediaControlsExpanded)
+            .frame(width: 22, height: 34, alignment: .trailing)
+            .contentShape(Rectangle())
     }
 
     @ViewBuilder
@@ -213,8 +209,16 @@ struct NowPlayingPlaybackCompactButton: View {
                 } else {
                     Image(systemName: "play.fill")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white.opacity(0.9))
-                        .frame(width: 18, height: 18)
+                        .foregroundColor(pausedAccentColor.opacity(0.95))
+                        .frame(width: 20, height: 20)
+                        .background(
+                            Circle()
+                                .fill(pausedAccentColor.opacity(0.18))
+                        )
+                        .overlay(
+                            Circle()
+                                .stroke(pausedAccentColor.opacity(0.22), lineWidth: 1)
+                        )
                 }
             }
             .contentShape(Rectangle())
@@ -222,92 +226,15 @@ struct NowPlayingPlaybackCompactButton: View {
         .buttonStyle(.plain)
         .hoverPointer()
     }
-}
 
-struct NowPlayingCompactTransportPopout: View {
-    @EnvironmentObject var appState: AppState
-    @ObservedObject private var manager = NowPlayingManager.shared
-
-    var body: some View {
-        HStack(spacing: 6) {
-            transportButton(systemName: "backward.fill", size: 9) {
-                manager.previousTrack()
-            }
-
-            transportButton(
-                systemName: manager.isPlaying ? "pause.fill" : "play.fill",
-                size: manager.isPlaying ? 9 : 8.25,
-                isPrimary: true
-            ) {
-                manager.togglePlayPause()
-            }
-
-            transportButton(systemName: "forward.fill", size: 9) {
-                manager.nextTrack()
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        .padding(.trailing, 8)
-        .contentShape(Rectangle())
-        .animation(appState.hoverAnimation, value: manager.isPlaying)
-    }
-
-    private func transportButton(
-        systemName: String,
-        size: CGFloat,
-        isPrimary: Bool = false,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button {
-            AppState.shared.beginCompactControlInteraction()
-            action()
-        } label: {
-            Image(systemName: systemName)
-                .font(.system(size: size, weight: .bold))
-                .foregroundColor(iconColor.opacity(isPrimary ? 0.98 : 0.86))
-                .frame(width: 26, height: 26)
-                .background(
-                    Circle()
-                        .fill(buttonFillColor.opacity(isPrimary ? 0.38 : 0.28))
-                )
-                .overlay(
-                    Circle()
-                        .stroke(accentColor.opacity(isPrimary ? 0.32 : 0.2), lineWidth: 1)
-                )
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .hoverPointer()
-        .help(helpText(for: systemName))
-    }
-
-    private var accentNSColor: NSColor {
+    private var pausedAccentNSColor: NSColor {
         manager.albumArtColor ?? .controlAccentColor
     }
 
-    private var accentColor: Color {
-        Color(nsColor: accentNSColor)
-    }
-
-    private var buttonFillColor: Color {
-        Color(nsColor: accentNSColor.blended(withFraction: 0.72, of: .black) ?? accentNSColor)
-    }
-
-    private var iconColor: Color {
-        accentNSColor.perceivedBrightness < 0.42
+    private var pausedAccentColor: Color {
+        pausedAccentNSColor.perceivedBrightness < 0.28
             ? .white
-            : Color(nsColor: accentNSColor)
-    }
-
-    private func helpText(for systemName: String) -> String {
-        switch systemName {
-        case "backward.fill":
-            return "Previous track"
-        case "forward.fill":
-            return "Next track"
-        default:
-            return manager.isPlaying ? "Pause" : "Play"
-        }
+            : Color(nsColor: pausedAccentNSColor)
     }
 }
 
