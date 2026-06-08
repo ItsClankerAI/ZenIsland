@@ -108,6 +108,7 @@ struct IslandContainerView: View {
             }
         }
         .animation(islandSurfaceAnimation, value: appState.activeModule)
+        .animation(islandSurfaceAnimation, value: appState.compactMediaControlsExpanded)
     }
 
     // MARK: - Content
@@ -115,15 +116,39 @@ struct IslandContainerView: View {
     @ViewBuilder
     private var islandContent: some View {
         if appState.currentState == .compact {
-            CompactView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                .opacity(compactContentOpacity)
-                .transition(contentTransition(scale: 0.85))
+            compactIslandLayout
         } else {
             expandedIslandLayout
                 .opacity(compactContentOpacity)
                 .transition(contentTransition(scale: 0.5))
         }
+    }
+
+    private var compactIslandLayout: some View {
+        let surfaceSize = appState.currentSize
+        let bodySize = appState.compactMediaBodySize
+
+        return ZStack(alignment: .topLeading) {
+            CompactView()
+                .frame(width: bodySize.width, height: bodySize.height, alignment: .center)
+                .opacity(compactContentOpacity)
+                .transition(contentTransition(scale: 0.85))
+
+            if appState.compactMediaControlsExpanded {
+                NowPlayingCompactTransportPopout()
+                    .frame(
+                        width: Constants.compactMediaControlsTrailingExpansion,
+                        height: surfaceSize.height,
+                        alignment: .center
+                    )
+                    .offset(x: bodySize.width)
+                    .transition(.opacity)
+                    .onHover { hovering in
+                        appState.setCompactMediaControlsHover(hovering)
+                    }
+            }
+        }
+        .frame(width: surfaceSize.width, height: surfaceSize.height, alignment: .topLeading)
     }
 
     // MARK: - Shape

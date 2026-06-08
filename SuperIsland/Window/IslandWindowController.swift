@@ -183,8 +183,14 @@ final class IslandWindowController {
         }
 
         let x = anchorX - size.width / 2
+            + compactRightAnchoredOffset()
         let y = anchorY - size.height
         panel.setFrame(NSRect(x: x, y: y, width: size.width, height: size.height), display: display)
+    }
+
+    private func compactRightAnchoredOffset() -> CGFloat {
+        guard appState.currentState == .compact else { return 0 }
+        return appState.compactMediaControlsTrailingExpansion / 2
     }
 
     /// Apply the given size to every active panel, each sized against its own screen.
@@ -304,6 +310,14 @@ final class IslandWindowController {
                 self?.updateCompactFrameIfNeeded()
             }
             .store(in: &cancellables)
+
+        appState.$compactMediaControlsExpanded
+            .removeDuplicates()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.updateCompactFrameIfNeeded()
+            }
+            .store(in: &cancellables)
     }
 
     private func updateCompactFrameIfNeeded() {
@@ -356,7 +370,7 @@ final class IslandWindowController {
     // MARK: - Fullscreen hiding
     //
     // When the user opts in via Settings we hide each panel individually
-    // while a non-SuperIsland window exactly covers its screen (the classic
+    // while a non-ZenBar window exactly covers its screen (the classic
     // signature of a native macOS fullscreen app). Each screen is evaluated
     // independently so an external monitor running fullscreen video doesn't
     // pull down the island on the MacBook's built-in display.
@@ -418,7 +432,7 @@ final class IslandWindowController {
         let screenFrame = screen.frame
 
         for window in info {
-            // Skip windows owned by SuperIsland itself.
+            // Skip windows owned by ZenBar itself.
             if let pid = window[kCGWindowOwnerPID as String] as? Int, pid == ourPID {
                 continue
             }
