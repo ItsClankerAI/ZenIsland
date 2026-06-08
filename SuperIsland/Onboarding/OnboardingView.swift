@@ -294,7 +294,7 @@ private struct WelcomeScreen: View {
                 .padding(.bottom, 24)
 
             VStack(spacing: 8) {
-                Text("Welcome to SuperIsland")
+                Text("Welcome to ZenBar")
                     .font(.system(size: 26, weight: .bold, design: .rounded))
                     .foregroundStyle(OBColors.textPrimary)
 
@@ -347,7 +347,7 @@ private struct PermissionsScreen: View {
                     .font(.system(size: 26, weight: .bold, design: .rounded))
                     .foregroundStyle(OBColors.textPrimary)
 
-                Text("SuperIsland needs a few permissions to work properly.")
+                Text("ZenBar needs a few permissions to work properly.")
                     .font(.system(size: 13, weight: .regular))
                     .foregroundStyle(OBColors.textSecondary)
             }
@@ -568,6 +568,13 @@ private struct OnboardingExtensionInfo: Identifiable {
 
     static let available: [OnboardingExtensionInfo] = [
         OnboardingExtensionInfo(
+            id: "zenbar.personal-hub",
+            name: "Personal Hub",
+            description: "Time, media glance, and quick launch actions",
+            fallbackIcon: "sparkles",
+            badge: "Custom"
+        ),
+        OnboardingExtensionInfo(
             id: "superisland.pomodoro",
             name: "Pomodoro Timer",
             description: "Focus timer with countdown in the island",
@@ -754,7 +761,7 @@ private struct ReadyScreen: View {
                     .font(.system(size: 26, weight: .bold, design: .rounded))
                     .foregroundStyle(OBColors.textPrimary)
 
-                Text("SuperIsland will run in the background.")
+                Text("ZenBar will run in the background.")
                     .font(.system(size: 14, weight: .regular))
                     .foregroundStyle(OBColors.textSecondary)
             }

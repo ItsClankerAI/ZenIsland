@@ -1,7 +1,7 @@
 "use strict";
 
 var LASTFM_API_ROOT = "https://ws.audioscrobbler.com/2.0/";
-var LASTFM_AUTHORIZE_URL = "https://api.supercmd.sh/auth/lastfm/authorize?app=superisland";
+var LASTFM_AUTHORIZE_URL = "https://api.supercmd.sh/auth/lastfm/authorize?app=zenbar";
 // Last.fm API key for the SuperCMD-registered app. Public per Last.fm's auth flow
 // (Last.fm exposes it in the auth redirect URL). Used as a fallback when the
 // OAuth callback doesn't carry an apiKey of its own.
@@ -727,7 +727,7 @@ function setupStatusCard() {
 
   if (pending) {
     title = "Approve Last.fm access";
-    subtitle = "Finish the approval in your browser. SuperIsland will connect automatically.";
+    subtitle = "Finish the approval in your browser. ZenBar will connect automatically.";
   } else if (oauth.expired) {
     title = "Last.fm login expired";
     subtitle = "Reconnect to keep scrobbling.";
@@ -1359,7 +1359,7 @@ function startAuthFlow() {
   clearError();
   state.auth.lastAuthError = "";
   state.auth.status = "pending";
-  setResult("Approve SuperIsland in your browser to finish connecting Last.fm.");
+  setResult("Approve ZenBar in your browser to finish connecting Last.fm.");
   SuperIsland.openURL(LASTFM_AUTHORIZE_URL);
 }
 
@@ -1696,7 +1696,7 @@ function mediaBridgeStatusView() {
         lineLimit: 1,
         multilineTextAlignment: "center"
       }),
-      View.text("Playback data is temporarily unavailable in this app session. Relaunch SuperIsland to restore the media bridge.", {
+      View.text("Playback data is temporarily unavailable in this app session. Relaunch ZenBar to restore the media bridge.", {
         style: "footnote",
         color: warningTextColor(),
         lineLimit: 3,
@@ -1818,7 +1818,7 @@ async function tick() {
     snapshot = asObject(hasMediaBridge() ? SuperIsland.system.getNowPlaying() : null);
   } catch (error) {
     snapshot = null;
-    logOperationWarning("nowPlaying", "Unable to read current playback from SuperIsland.");
+    logOperationWarning("nowPlaying", "Unable to read current playback from ZenBar.");
   }
   state.lastSnapshot = snapshot;
 

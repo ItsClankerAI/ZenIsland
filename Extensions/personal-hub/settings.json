@@ -1,0 +1,23 @@
+{
+  "sections": [
+    {
+      "title": "Quick Links",
+      "fields": [
+        {
+          "type": "text",
+          "key": "primaryURL",
+          "label": "Primary URL",
+          "placeholder": "https://calendar.google.com",
+          "default": "https://calendar.google.com"
+        },
+        {
+          "type": "text",
+          "key": "secondaryURL",
+          "label": "Secondary URL",
+          "placeholder": "https://music.apple.com",
+          "default": "https://music.apple.com"
+        }
+      ]
+    }
+  ]
+}

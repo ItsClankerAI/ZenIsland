@@ -69,7 +69,7 @@ final class ExtensionManager: ObservableObject {
         let appSupportBase = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         installedExtensionsDirectory = appSupportBase
-            .appendingPathComponent("SuperIsland", isDirectory: true)
+            .appendingPathComponent("ZenBar", isDirectory: true)
             .appendingPathComponent("Extensions", isDirectory: true)
 
         try? fileManager.createDirectory(at: installedExtensionsDirectory, withIntermediateDirectories: true)
@@ -145,6 +145,7 @@ final class ExtensionManager: ObservableObject {
 
     private static let userDisabledExtensionsKey = "extensions.userDisabled"
     private static let seenExtensionsKey = "extensions.seenIDs"
+    private static let personalBuildDefaultEnabledIDs: Set<String> = ["zenbar.personal-hub"]
 
     private func userDisabledIDs() -> Set<String> {
         let array = UserDefaults.standard.stringArray(forKey: Self.userDisabledExtensionsKey) ?? []
@@ -181,10 +182,15 @@ final class ExtensionManager: ObservableObject {
         let defaults = UserDefaults.standard
         let storedSeen = defaults.array(forKey: Self.seenExtensionsKey) as? [String]
 
+        var disabled = userDisabledIDs()
+        if !Self.personalBuildDefaultEnabledIDs.isDisjoint(with: disabled) {
+            disabled.subtract(Self.personalBuildDefaultEnabledIDs)
+            persistUserDisabledIDs(disabled)
+        }
+
         guard let storedSeen else {
             defaults.set(Array(installedIDs), forKey: Self.seenExtensionsKey)
             if !optOutIDs.isEmpty {
-                var disabled = userDisabledIDs()
                 for id in optOutIDs {
                     disabled.insert(id)
                     ExtensionLogger.shared.log(id, .info, "First-run seed: defaultEnabled=false, leaving disabled until user opts in.")
@@ -195,10 +201,10 @@ final class ExtensionManager: ObservableObject {
         }
 
         let seen = Set(storedSeen)
+        let defaultEnabledIDs = Set(installed.filter(\.defaultEnabled).map(\.id))
         let newIDs = installedIDs.subtracting(seen)
         if !newIDs.isEmpty {
-            var disabled = userDisabledIDs()
-            for id in newIDs {
+            for id in newIDs.subtracting(defaultEnabledIDs) {
                 disabled.insert(id)
                 ExtensionLogger.shared.log(id, .info, "New extension discovered; defaulting to disabled until user opts in.")
             }
@@ -547,7 +553,7 @@ final class WhatsAppWebBridge: ObservableObject {
     private var appSupportDirectory: URL {
         let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-        return base.appendingPathComponent("SuperIsland", isDirectory: true)
+        return base.appendingPathComponent("ZenBar", isDirectory: true)
     }
 
     private var authDirectory: URL {
@@ -743,7 +749,7 @@ final class WhatsAppWebBridge: ObservableObject {
             performBridgeUpdate {
                 connectionState = .error
                 statusText = "Node.js required"
-                lastError = "Node.js is not installed. Please install it from nodejs.org, then restart Super Island."
+                lastError = "Node.js is not installed. Please install it from nodejs.org, then restart ZenBar."
             }
             DispatchQueue.main.async { Self.showNodeJSInstallAlert() }
             return
@@ -847,7 +853,7 @@ final class WhatsAppWebBridge: ObservableObject {
     private static func showNodeJSInstallAlert() {
         let alert = NSAlert()
         alert.messageText = "Node.js Required for WhatsApp"
-        alert.informativeText = "The WhatsApp integration needs Node.js to run. It's a free, one-time install — just download the macOS installer from nodejs.org and restart Super Island."
+        alert.informativeText = "The WhatsApp integration needs Node.js to run. It's a free, one-time install - just download the macOS installer from nodejs.org and restart ZenBar."
         alert.alertStyle = .warning
         alert.addButton(withTitle: "Download Node.js")
         alert.addButton(withTitle: "Dismiss")

@@ -1,0 +1,26 @@
+{
+  "id": "zenbar.personal-hub",
+  "name": "Personal Hub",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "main": "index.js",
+  "author": {
+    "name": "Personal build"
+  },
+  "description": "A practical personal notch module with time, media status, and quick launch actions.",
+  "icon": "icon.svg",
+  "license": "MIT",
+  "categories": ["productivity", "personal"],
+  "permissions": ["media", "storage"],
+  "capabilities": {
+    "compact": true,
+    "expanded": true,
+    "fullExpanded": true,
+    "minimalCompact": true,
+    "backgroundRefresh": true,
+    "settings": true
+  },
+  "refreshInterval": 15.0,
+  "activationTriggers": ["manual", "timer"],
+  "defaultEnabled": true
+}

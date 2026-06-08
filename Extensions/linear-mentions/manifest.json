@@ -5,9 +5,9 @@
   "minAppVersion": "1.0.0",
   "main": "index.js",
   "author": {
-    "name": "SuperIsland"
+    "name": "ZenBar"
   },
-  "description": "Watches Linear issue mentions and comment mentions, surfaces them in Super Island, and lets you reply inline.",
+  "description": "Watches Linear issue mentions and comment mentions, surfaces them in ZenBar, and lets you reply inline.",
   "icon": "icon.svg",
   "license": "MIT",
   "categories": ["productivity", "communication"],

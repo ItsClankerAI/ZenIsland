@@ -2,7 +2,7 @@
 
 const LINEAR_API_URL = "https://api.linear.app/graphql";
 const LINEAR_APP_NAME = "Linear";
-const LINEAR_AUTHORIZE_URL = "https://api.supercmd.sh/auth/linear/authorize?app=superisland";
+const LINEAR_AUTHORIZE_URL = "https://api.supercmd.sh/auth/linear/authorize?app=zenbar";
 const MAX_VISIBLE_MENTIONS = 8;
 const MAX_PERSISTED_MENTION_IDS = 200;
 const GRAPHQL_FETCH_LIMIT = 50;
@@ -880,7 +880,7 @@ function fullExpandedView() {
 
     return View.vstack([
       View.text("Linear Mentions", { style: "title", lineLimit: 1 }),
-      View.text(oauth.expired ? "Your saved Linear session expired. Start OAuth again." : "Authorize Linear to receive mentions in Super Island.", {
+      View.text(oauth.expired ? "Your saved Linear session expired. Start OAuth again." : "Authorize Linear to receive mentions in ZenBar.", {
         style: "caption",
         color: "gray",
         lineLimit: 2
