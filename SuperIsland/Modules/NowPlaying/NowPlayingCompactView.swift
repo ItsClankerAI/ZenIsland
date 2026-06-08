@@ -27,6 +27,18 @@ struct NowPlayingCompactView: View {
 
     @ViewBuilder
     private var albumHint: some View {
+        Button {
+            AppState.shared.beginCompactControlInteraction()
+            manager.focusCurrentSource()
+        } label: {
+            albumHintContent
+        }
+        .buttonStyle(.plain)
+        .hoverPointer()
+    }
+
+    @ViewBuilder
+    private var albumHintContent: some View {
         if let art = manager.albumArt {
             Image(nsImage: art)
                 .resizable()

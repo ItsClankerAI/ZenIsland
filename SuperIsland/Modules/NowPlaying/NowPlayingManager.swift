@@ -1363,6 +1363,29 @@ final class NowPlayingManager: ObservableObject {
         NSWorkspace.shared.open(url)
     }
 
+    func focusCurrentSource() {
+        let bundleIdentifier = currentBundleIdentifier.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let target = browserTarget(for: bundleIdentifier) {
+            focusBrowserSource(target)
+            return
+        }
+
+        if !bundleIdentifier.isEmpty {
+            activateApplication(bundleIdentifier: bundleIdentifier)
+            return
+        }
+
+        switch sourceName {
+        case "Spotify":
+            activateApplication(bundleIdentifier: "com.spotify.client")
+        case "Apple Music":
+            activateApplication(bundleIdentifier: "com.apple.Music")
+        default:
+            break
+        }
+    }
+
     private func formatTime(_ time: TimeInterval) -> String {
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60
@@ -1447,6 +1470,72 @@ final class NowPlayingManager: ObservableObject {
 
     private func browserTarget(for bundleIdentifier: String) -> NowPlayingBrowserTarget? {
         nowPlayingSupportedBrowserTargets.first { $0.id == bundleIdentifier }
+    }
+
+    private func focusBrowserSource(_ target: NowPlayingBrowserTarget) {
+        let tabURL = currentChromeTabURL.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !tabURL.isEmpty else {
+            activateApplication(bundleIdentifier: target.id)
+            return
+        }
+
+        Task { [weak self] in
+            guard let self else { return }
+            let didFocusTab = await self.runOnAppleScriptQueue {
+                self.focusBrowserTabViaAppleScript(target: target, tabURL: tabURL)
+            }
+
+            if !didFocusTab {
+                self.activateApplication(bundleIdentifier: target.id)
+            }
+        }
+    }
+
+    nonisolated private func focusBrowserTabViaAppleScript(target: NowPlayingBrowserTarget, tabURL: String) -> Bool {
+        let escapedTabURL = escapeAppleScriptString(tabURL)
+        let applicationName = escapeAppleScriptString(target.applicationName)
+        let processName = escapeAppleScriptString(target.processName)
+
+        let script = """
+        tell application "System Events"
+            if not (exists process "\(processName)") then return "NOT_RUNNING"
+        end tell
+        tell application "\(applicationName)"
+            repeat with windowIndex from 1 to count of windows
+                set candidateWindow to window windowIndex
+                repeat with tabIndex from 1 to count of tabs of candidateWindow
+                    if URL of tab tabIndex of candidateWindow is "\(escapedTabURL)" then
+                        set active tab index of candidateWindow to tabIndex
+                        set index of candidateWindow to 1
+                        activate
+                        return "FOCUSED"
+                    end if
+                end repeat
+            end repeat
+            activate
+            return "NOT_FOUND"
+        end tell
+        """
+
+        return runAppleScript(script) == "FOCUSED"
+    }
+
+    private func activateApplication(bundleIdentifier: String) {
+        let runningApplication = NSWorkspace.shared.runningApplications.first {
+            $0.bundleIdentifier == bundleIdentifier && !$0.isTerminated
+        }
+
+        if let runningApplication {
+            runningApplication.activate(options: [.activateAllWindows])
+            return
+        }
+
+        guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) else {
+            return
+        }
+
+        NSWorkspace.shared.open(appURL)
     }
 
     private func chromeControlJavaScript(shouldPlay: Bool) -> String {
