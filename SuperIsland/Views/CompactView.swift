@@ -182,23 +182,39 @@ private struct MinimalCompactLayout: View {
 }
 
 private struct NowPlayingMinimalCompactAlbumView: View {
+    @EnvironmentObject var appState: AppState
     @ObservedObject private var manager = NowPlayingManager.shared
 
     var body: some View {
-        Group {
-            if let art = manager.albumArt {
-                Image(nsImage: art)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 26, height: 26)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            } else {
-                Image(systemName: "music.note")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.9))
-                    .frame(width: 26, height: 26)
-                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            }
+        Button {
+            AppState.shared.beginCompactControlInteraction()
+            manager.focusCurrentSource()
+        } label: {
+            albumContent
+        }
+        .frame(width: 34, height: 34, alignment: .center)
+        .contentShape(Rectangle())
+        .buttonStyle(.plain)
+        .hoverPointer()
+        .onHover { hovering in
+            appState.setCompactNowPlayingControlHover(hovering)
+        }
+    }
+
+    @ViewBuilder
+    private var albumContent: some View {
+        if let art = manager.albumArt {
+            Image(nsImage: art)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 26, height: 26)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        } else {
+            Image(systemName: "music.note")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white.opacity(0.9))
+                .frame(width: 26, height: 26)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
     }
 }
