@@ -25,6 +25,10 @@ struct NowPlayingCompactView: View {
         appState.usesWideCompactLayout ? 22 : 24
     }
 
+    private var compactArtHitSize: CGFloat {
+        max(compactArtSize, 34)
+    }
+
     @ViewBuilder
     private var albumHint: some View {
         Button {
@@ -33,6 +37,8 @@ struct NowPlayingCompactView: View {
         } label: {
             albumHintContent
         }
+        .frame(width: compactArtHitSize, height: 34, alignment: .center)
+        .contentShape(Rectangle())
         .buttonStyle(.plain)
         .hoverPointer()
         .onHover { hovering in

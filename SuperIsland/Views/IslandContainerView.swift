@@ -349,6 +349,8 @@ struct IslandContainerView: View {
     }
 
     private func handleSurfaceTap() {
+        guard !appState.isCompactNowPlayingControlHovered else { return }
+
         if handleNotificationTapIfNeeded() {
             return
         }
