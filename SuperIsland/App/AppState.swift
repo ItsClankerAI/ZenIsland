@@ -248,6 +248,7 @@ final class AppState: ObservableObject {
     }
     @Published private(set) var isAppActive: Bool = true
     @Published private(set) var isShelfDragActive = false
+    @Published private(set) var isCompactNowPlayingControlHovered = false
     /// Set by IslandWindowController during overshoot animations to prevent
     /// hover-triggered dismiss from firing while the window frame is resizing.
     var suppressDismissScheduling: Bool = false
@@ -535,6 +536,10 @@ final class AppState: ObservableObject {
         let wasHovering = isHovering
         isHovering = hovering
 
+        if !hovering {
+            setCompactNowPlayingControlHover(false)
+        }
+
         if isShelfDragActive {
             cancelAutoDismiss()
             cancelFullExpandedDismiss()
@@ -715,6 +720,19 @@ final class AppState: ObservableObject {
         beginSystemEmojiInteraction(timeout: timeout)
     }
 
+    func setCompactNowPlayingControlHover(_ hovering: Bool) {
+        guard isCompactNowPlayingControlHovered != hovering else { return }
+        isCompactNowPlayingControlHovered = hovering
+
+        if hovering {
+            cancelHoverActivation()
+            return
+        }
+
+        guard isHovering, currentState == .compact else { return }
+        scheduleHoverActivation(wasHovering: false)
+    }
+
     func endSystemEmojiInteraction() {
         systemEmojiInteractionWorkItem?.cancel()
         systemEmojiInteractionWorkItem = nil
@@ -737,6 +755,7 @@ final class AppState: ObservableObject {
     private func scheduleHoverActivation(wasHovering: Bool) {
         guard !wasHovering else { return }
         guard !isSystemEmojiInteractionActive else { return }
+        guard !isCompactNowPlayingControlHovered else { return }
 
         cancelHoverActivation()
 
@@ -805,6 +824,10 @@ final class AppState: ObservableObject {
 
     private func handleStateTransition(from oldValue: IslandState, to newValue: IslandState) {
         guard oldValue != newValue else { return }
+
+        if newValue != .compact {
+            setCompactNowPlayingControlHover(false)
+        }
 
         switch newValue {
         case .expanded:

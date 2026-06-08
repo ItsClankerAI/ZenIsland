@@ -35,6 +35,9 @@ struct NowPlayingCompactView: View {
         }
         .buttonStyle(.plain)
         .hoverPointer()
+        .onHover { hovering in
+            appState.setCompactNowPlayingControlHover(hovering)
+        }
     }
 
     @ViewBuilder
@@ -237,6 +240,9 @@ struct NowPlayingPlaybackCompactButton: View {
         }
         .buttonStyle(.plain)
         .hoverPointer()
+        .onHover { hovering in
+            appState.setCompactNowPlayingControlHover(hovering)
+        }
     }
 
     private var pausedAccentNSColor: NSColor {
