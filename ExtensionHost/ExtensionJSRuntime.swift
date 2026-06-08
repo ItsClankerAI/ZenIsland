@@ -128,6 +128,7 @@ final class ExtensionJSRuntime {
         let compact = renderNode(from: config, key: "compact") ?? .empty
         let expanded = renderNode(from: config, key: "expanded") ?? compact
         let fullExpanded = renderNode(from: config, key: "fullExpanded")
+        let compactOutline = renderCompactOutline(from: config)
 
         var minimalLeading: ViewNode?
         var minimalTrailing: ViewNode?
@@ -144,7 +145,8 @@ final class ExtensionJSRuntime {
             fullExpanded: fullExpanded,
             minimalLeading: minimalLeading,
             minimalTrailing: minimalTrailing,
-            minimalCompactPrecedence: minimalCompactPrecedenceValue
+            minimalCompactPrecedence: minimalCompactPrecedenceValue,
+            compactOutline: compactOutline
         )
     }
 
@@ -229,6 +231,62 @@ final class ExtensionJSRuntime {
         }
 
         return 1
+    }
+
+    private func renderCompactOutline(from config: JSValue) -> CompactOutlineState? {
+        guard let value = config.forProperty("compactOutline"),
+              !value.isUndefined,
+              !value.isNull else {
+            return nil
+        }
+
+        let result: JSValue?
+        if isCompactOutlineObject(value) {
+            result = value
+        } else if value.isObject {
+            result = invokeJS("compactOutline()") {
+                value.call(withArguments: [])
+            }
+        } else {
+            result = value
+        }
+
+        guard let result,
+              !result.isUndefined,
+              !result.isNull,
+              result.isObject else {
+            return nil
+        }
+
+        let visibleValue = result.forProperty("visible")
+        let visible = visibleValue?.isBoolean == true ? (visibleValue?.toBool() ?? true) : true
+        let progress = result.forProperty("progress")?.toDouble() ?? 0
+        let color = parseCompactOutlineColor(result.forProperty("color"))
+        let mode = normalizedText(result.forProperty("mode")?.toString()) ?? "elapsed"
+
+        return CompactOutlineState(
+            visible: visible,
+            progress: progress,
+            color: color,
+            mode: mode
+        )
+    }
+
+    private func isCompactOutlineObject(_ value: JSValue) -> Bool {
+        ["visible", "progress", "color", "mode"].contains { key in
+            guard let property = value.forProperty(key) else { return false }
+            return !property.isUndefined && !property.isNull
+        }
+    }
+
+    private func parseCompactOutlineColor(_ value: JSValue?) -> ColorValue {
+        guard let value, !value.isUndefined, !value.isNull else { return .named("white") }
+        if let string = value.toString(), value.isString { return .named(string) }
+        let r = value.forProperty("r")?.toDouble() ?? 1
+        let g = value.forProperty("g")?.toDouble() ?? 1
+        let b = value.forProperty("b")?.toDouble() ?? 1
+        let a = value.forProperty("a")?.toDouble() ?? 1
+        return .rgba(r: r, g: g, b: b, a: a)
     }
 
     private func injectStore(into superIsland: JSValue) {

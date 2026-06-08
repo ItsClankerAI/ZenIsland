@@ -23,6 +23,12 @@ function settingNumber(key, fallback) {
   return toNumber(SuperIsland.settings.get(key), fallback);
 }
 
+function settingString(key, fallback) {
+  var value = SuperIsland.settings.get(key);
+  if (typeof value !== "string" || value.trim() === "") return fallback;
+  return value.trim();
+}
+
 function settingBool(key, fallback) {
   var value = SuperIsland.settings.get(key);
   if (typeof value === "boolean") return value;
@@ -49,6 +55,29 @@ function formatTime(seconds) {
   var m = Math.floor(safe / 60);
   var s = safe % 60;
   return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+}
+
+function clamp01(value) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(1, value));
+}
+
+function hexToColor(value, fallbackHex) {
+  var raw = typeof value === "string" ? value.trim() : "";
+  if (raw.charAt(0) === "#") raw = raw.slice(1);
+  if (raw.length === 3) {
+    raw = raw.charAt(0) + raw.charAt(0) + raw.charAt(1) + raw.charAt(1) + raw.charAt(2) + raw.charAt(2);
+  }
+  if (!/^[0-9a-fA-F]{6}$/.test(raw)) {
+    return hexToColor(fallbackHex, "#FFFFFF");
+  }
+  var intValue = parseInt(raw, 16);
+  return {
+    r: ((intValue >> 16) & 255) / 255,
+    g: ((intValue >> 8) & 255) / 255,
+    b: (intValue & 255) / 255,
+    a: 1
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -178,6 +207,26 @@ function skipPhase() { switchPhase(); }
 
 function progressRatio() {
   return 1 - remainingSeconds / Math.max(1, currentPhaseDuration());
+}
+
+function outlineMode() {
+  var mode = phase === PHASE_BREAK
+    ? settingString("breakOutlineMode", "elapsed")
+    : settingString("focusOutlineMode", "elapsed");
+  return mode === "remaining" ? "remaining" : "elapsed";
+}
+
+function outlineProgressRatio() {
+  var elapsed = clamp01(progressRatio());
+  var mode = outlineMode();
+  return mode === "remaining" ? clamp01(1 - elapsed) : elapsed;
+}
+
+function outlineColor() {
+  if (phase === PHASE_BREAK) {
+    return hexToColor(settingString("breakOutlineColor", "#66DE8C"), "#66DE8C");
+  }
+  return hexToColor(settingString("focusOutlineColor", "#FFAD42"), "#FFAD42");
 }
 
 // ---------------------------------------------------------------------------
@@ -342,6 +391,19 @@ SuperIsland.registerModule({
       View.text(formatTime(remainingSeconds), { style: "monospaced", color: "white" }),
       isRunning ? View.circularProgress(progressRatio(), { total: 1, lineWidth: 2, color: progressColor() }) : null
     ], { spacing: 6, align: "center" });
+  },
+
+  compactOutline: function() {
+    var duration = currentPhaseDuration();
+    if (duration <= 0 || remainingSeconds < 0) {
+      return { visible: false, progress: 0, color: outlineColor(), mode: outlineMode() };
+    }
+    return {
+      visible: true,
+      progress: outlineProgressRatio(),
+      color: outlineColor(),
+      mode: outlineMode()
+    };
   },
 
   minimalCompact: {

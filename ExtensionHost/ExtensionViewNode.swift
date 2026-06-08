@@ -8,6 +8,14 @@ struct ExtensionViewState {
     var minimalLeading: ViewNode?
     var minimalTrailing: ViewNode?
     var minimalCompactPrecedence: Int
+    var compactOutline: CompactOutlineState?
+}
+
+struct CompactOutlineState: Equatable {
+    var visible: Bool
+    var progress: Double
+    var color: ColorValue
+    var mode: String
 }
 
 enum DisplayMode {

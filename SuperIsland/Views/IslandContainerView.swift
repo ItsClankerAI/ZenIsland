@@ -4,6 +4,7 @@ import SwiftUI
 struct IslandContainerView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject private var nowPlaying = NowPlayingManager.shared
+    @ObservedObject private var extensionManager = ExtensionManager.shared
     @State private var isHoveringIslandSurface = false
     @State private var isHoveringPreviousButton = false
     @State private var isHoveringNextButton = false
@@ -76,7 +77,7 @@ struct IslandContainerView: View {
                     .stroke(Color.accentColor.opacity(0.92), style: StrokeStyle(lineWidth: 3, dash: [10]))
                     .padding(1)
             } else {
-                mediaProgressOutline
+                compactProgressOutline
             }
         }
         .contentShape(islandShape)
@@ -187,6 +188,15 @@ struct IslandContainerView: View {
     }
 
     @ViewBuilder
+    private var compactProgressOutline: some View {
+        if let outline = activeExtensionProgressOutline {
+            extensionProgressOutline(outline)
+        } else {
+            mediaProgressOutline
+        }
+    }
+
+    @ViewBuilder
     private var mediaProgressOutline: some View {
         if shouldShowMediaProgressOutline {
             TimelineView(.periodic(from: .now, by: 1)) { context in
@@ -208,6 +218,43 @@ struct IslandContainerView: View {
         )
             .trim(from: 0, to: progress)
             .stroke(mediaProgressColor, style: mediaProgressStrokeStyle(lineWidth: 2.4))
+            .padding(1.4)
+            .frame(width: bodySize.width, height: bodySize.height)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .allowsHitTesting(false)
+            .animation(mediaProgressAnimation, value: progress)
+            .transition(.opacity)
+    }
+
+    private var activeExtensionProgressOutline: CompactOutlineState? {
+        guard appState.currentState == .compact,
+              case .extension_(let extensionID)? = appState.compactPresentationModule,
+              let outline = extensionManager.extensionStates[extensionID]?.compactOutline,
+              outline.visible,
+              outline.progress.isFinite else {
+            return nil
+        }
+
+        return CompactOutlineState(
+            visible: true,
+            progress: min(max(outline.progress, 0), 1),
+            color: outline.color,
+            mode: outline.mode
+        )
+    }
+
+    private func extensionProgressOutline(_ outline: CompactOutlineState) -> some View {
+        let bodySize = appState.compactMediaBodySize
+        let progress = CGFloat(min(max(outline.progress, 0), 1))
+
+        return MediaProgressRailShape(
+            topLeadingRadius: appState.currentTopLeadingCornerRadius,
+            topTrailingRadius: appState.currentTopTrailingCornerRadius,
+            bottomLeadingRadius: appState.currentBottomLeadingCornerRadius,
+            bottomTrailingRadius: appState.currentBottomTrailingCornerRadius
+        )
+            .trim(from: 0, to: progress)
+            .stroke(outline.color.swiftUI.opacity(0.95), style: mediaProgressStrokeStyle(lineWidth: 2.4))
             .padding(1.4)
             .frame(width: bodySize.width, height: bodySize.height)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

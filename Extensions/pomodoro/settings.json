@@ -24,6 +24,55 @@
       ]
     },
     {
+      "title": "Notch Outline",
+      "fields": [
+        {
+          "type": "color",
+          "key": "focusOutlineColor",
+          "label": "Focus outline color",
+          "default": "#FFAD42"
+        },
+        {
+          "type": "picker",
+          "key": "focusOutlineMode",
+          "label": "Focus progress mode",
+          "default": "elapsed",
+          "options": [
+            {
+              "value": "elapsed",
+              "label": "Elapsed fills up"
+            },
+            {
+              "value": "remaining",
+              "label": "Remaining drains down"
+            }
+          ]
+        },
+        {
+          "type": "color",
+          "key": "breakOutlineColor",
+          "label": "Rest outline color",
+          "default": "#66DE8C"
+        },
+        {
+          "type": "picker",
+          "key": "breakOutlineMode",
+          "label": "Rest progress mode",
+          "default": "elapsed",
+          "options": [
+            {
+              "value": "elapsed",
+              "label": "Elapsed fills up"
+            },
+            {
+              "value": "remaining",
+              "label": "Remaining drains down"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "title": "Notifications",
       "fields": [
         {
