@@ -7,7 +7,7 @@
   "author": {
     "name": "Jonathan Perez"
   },
-  "description": "Scrobble the track currently playing on your Mac to Last.fm from ZenBar.",
+  "description": "Scrobble the track currently playing on your Mac to Last.fm from ZenIsland.",
   "icon": "icon.svg",
   "license": "MIT",
   "categories": ["music", "social", "productivity"],

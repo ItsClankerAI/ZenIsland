@@ -30,9 +30,9 @@ enum PermissionType: CaseIterable {
     var description: String {
         switch self {
         case .accessibility: return "Needed for gesture detection and system event monitoring"
-        case .screenRecording: return "Lets ZenBar appear properly in screen recordings"
-        case .calendar: return "Show upcoming events in ZenBar"
-        case .notifications: return "Show supported notification sources in ZenBar"
+        case .screenRecording: return "Lets ZenIsland appear properly in screen recordings"
+        case .calendar: return "Show upcoming events in ZenIsland"
+        case .notifications: return "Show supported notification sources in ZenIsland"
         case .microphone: return "Audio visualization for the spectrogram"
         case .location: return "Provide weather information for your location"
         case .bluetooth: return "Show connected device notifications"
@@ -305,7 +305,7 @@ final class PermissionsManager {
 
     func openBluetoothSettings() {
         // Creating a CBCentralManager triggers the system Bluetooth permission prompt,
-        // which registers ZenBar in the Bluetooth privacy list.
+        // which registers ZenIsland in the Bluetooth privacy list.
         if bluetoothTrigger == nil {
             bluetoothTrigger = CBCentralManager()
         }

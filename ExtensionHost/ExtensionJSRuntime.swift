@@ -187,7 +187,7 @@ final class ExtensionJSRuntime {
 
     private func injectAPI() {
         let superIsland = JSValue(newObjectIn: context)!
-        context.setObject(superIsland, forKeyedSubscript: "ZenBar" as NSString)
+        context.setObject(superIsland, forKeyedSubscript: "ZenIsland" as NSString)
         context.setObject(superIsland, forKeyedSubscript: "SuperIsland" as NSString)
 
         injectModuleRegistration(into: superIsland)
@@ -1120,7 +1120,7 @@ final class ExtensionJSRuntime {
             content.sound = sound ? .default : nil
 
             let request = UNNotificationRequest(
-                identifier: "zenbar.\(extensionID).\(UUID().uuidString)",
+                identifier: "zenisland.\(extensionID).\(UUID().uuidString)",
                 content: content,
                 trigger: UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
             )

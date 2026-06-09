@@ -361,7 +361,7 @@ struct ModuleSettingsView: View {
     private var calendarPermissionDescription: String {
         switch calendarManager.authorizationStatus {
         case .fullAccess, .authorized:
-            return "Allowed. Choose which calendars appear in ZenBar."
+            return "Allowed. Choose which calendars appear in ZenIsland."
         case .notDetermined:
             return "Not requested. Allow access to show upcoming events."
         case .denied:
@@ -378,11 +378,11 @@ struct ModuleSettingsView: View {
     private var notificationPermissionDescription: String {
         switch notificationManager.authorizationStatus {
         case .authorized:
-            return "Allowed. ZenBar can send its own notifications and extension alerts."
+            return "Allowed. ZenIsland can send its own notifications and extension alerts."
         case .denied:
-            return "Denied. Open System Settings to allow ZenBar notifications."
+            return "Denied. Open System Settings to allow ZenIsland notifications."
         case .notDetermined:
-            return "Not requested. Allow this when you want ZenBar or extensions to send macOS notifications."
+            return "Not requested. Allow this when you want ZenIsland or extensions to send macOS notifications."
         case .provisional, .ephemeral:
             return "Allowed with limited delivery."
         @unknown default:
@@ -498,7 +498,7 @@ struct ModuleSettingsView: View {
     private func browserToggleRow(_ browser: NowPlayingBrowserTarget) -> some View {
         SettingToggleRow(
             title: browser.displayName,
-            description: "Allow ZenBar to look for media in this browser.",
+            description: "Allow ZenIsland to look for media in this browser.",
             isOn: browserBinding(for: browser.id)
         )
     }

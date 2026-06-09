@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Agents Status bridge for ZenBar.
+Agents Status bridge for ZenIsland.
 
 Tracks state per (agent, session_id) so the extension can render a list of
 active coding-agent sessions. Currently bridges Claude Code and Codex CLI
@@ -65,7 +65,7 @@ CLAUDE_SCAN_INTERVAL = float(os.environ.get("AGENTS_STATUS_CLAUDE_SCAN_INTERVAL"
 RECENTLY_ENDED_PID_TTL = float(os.environ.get("AGENTS_STATUS_RECENTLY_ENDED_TTL", "8"))
 INSTALLED_EXT_ROOT = (
     pathlib.Path.home() /
-    "Library" / "Application Support" / "ZenBar" / "Extensions" / "agents-status"
+    "Library" / "Application Support" / "ZenIsland" / "Extensions" / "agents-status"
 )
 DEFAULT_CC_HOOK_SCRIPT = str(INSTALLED_EXT_ROOT / "hooks" / "cc-event-hook.sh")
 DEFAULT_CODEX_HOOK_SCRIPT = str(INSTALLED_EXT_ROOT / "hooks" / "codex-notify-hook.sh")
@@ -2383,7 +2383,7 @@ def _handle_permission_hook(body):
                 "hookEventName": "PermissionRequest",
                 "decision": {
                     "behavior": "deny",
-                    "message": "No response from ZenBar within timeout",
+                    "message": "No response from ZenIsland within timeout",
                 },
             }
         }

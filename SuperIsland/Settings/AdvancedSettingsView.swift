@@ -16,7 +16,7 @@ struct AdvancedSettingsView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Show island on").font(.system(size: 13))
-                        Text("Pick a specific display or let ZenBar choose")
+                        Text("Pick a specific display or let ZenIsland choose")
                             .font(.system(size: 11)).foregroundColor(.secondary)
                     }
                     Spacer(minLength: 8)
@@ -72,7 +72,7 @@ struct AdvancedSettingsView: View {
                         Button("Cancel", role: .cancel) {}
                         Button("Reset", role: .destructive) { resetAllSettings() }
                     } message: {
-                        Text("This will reset all ZenBar settings to their defaults.")
+                        Text("This will reset all ZenIsland settings to their defaults.")
                     }
                 }
                 .padding(.horizontal, 16).padding(.vertical, 12)
@@ -155,7 +155,7 @@ struct AdvancedSettingsView: View {
     }
 
     private func resetAllSettings() {
-        let domain = Bundle.main.bundleIdentifier ?? "com.zenbar.ZenBar"
+        let domain = Bundle.main.bundleIdentifier ?? "com.zenisland.ZenIsland"
         UserDefaults.standard.removePersistentDomain(forName: domain)
         UserDefaults.standard.synchronize()
     }

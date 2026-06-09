@@ -1,6 +1,6 @@
 "use strict";
 
-var App = (typeof ZenBar !== "undefined") ? ZenBar : SuperIsland;
+var App = (typeof ZenIsland !== "undefined") ? ZenIsland : SuperIsland;
 var lastTick = Date.now();
 
 function pad(value) {

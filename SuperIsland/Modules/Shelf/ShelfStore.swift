@@ -724,7 +724,7 @@ final class ShelfStore: ObservableObject {
     private static var imageStorageURL: URL? {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
             .first?
-            .appendingPathComponent("ZenBar", isDirectory: true)
+            .appendingPathComponent("ZenIsland", isDirectory: true)
             .appendingPathComponent("ShelfImages", isDirectory: true)
     }
 

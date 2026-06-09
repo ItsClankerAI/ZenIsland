@@ -69,7 +69,7 @@ final class ExtensionManager: ObservableObject {
         let appSupportBase = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         installedExtensionsDirectory = appSupportBase
-            .appendingPathComponent("ZenBar", isDirectory: true)
+            .appendingPathComponent("ZenIsland", isDirectory: true)
             .appendingPathComponent("Extensions", isDirectory: true)
 
         try? fileManager.createDirectory(at: installedExtensionsDirectory, withIntermediateDirectories: true)
@@ -145,7 +145,7 @@ final class ExtensionManager: ObservableObject {
 
     private static let userDisabledExtensionsKey = "extensions.userDisabled"
     private static let seenExtensionsKey = "extensions.seenIDs"
-    private static let personalBuildDefaultEnabledIDs: Set<String> = ["zenbar.personal-hub"]
+    private static let personalBuildDefaultEnabledIDs: Set<String> = ["zenisland.personal-hub"]
 
     private func userDisabledIDs() -> Set<String> {
         let array = UserDefaults.standard.stringArray(forKey: Self.userDisabledExtensionsKey) ?? []
@@ -553,7 +553,7 @@ final class WhatsAppWebBridge: ObservableObject {
     private var appSupportDirectory: URL {
         let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-        return base.appendingPathComponent("ZenBar", isDirectory: true)
+        return base.appendingPathComponent("ZenIsland", isDirectory: true)
     }
 
     private var authDirectory: URL {
@@ -749,7 +749,7 @@ final class WhatsAppWebBridge: ObservableObject {
             performBridgeUpdate {
                 connectionState = .error
                 statusText = "Node.js required"
-                lastError = "Node.js is not installed. Please install it from nodejs.org, then restart ZenBar."
+                lastError = "Node.js is not installed. Please install it from nodejs.org, then restart ZenIsland."
             }
             DispatchQueue.main.async { Self.showNodeJSInstallAlert() }
             return
@@ -853,7 +853,7 @@ final class WhatsAppWebBridge: ObservableObject {
     private static func showNodeJSInstallAlert() {
         let alert = NSAlert()
         alert.messageText = "Node.js Required for WhatsApp"
-        alert.informativeText = "The WhatsApp integration needs Node.js to run. It's a free, one-time install - just download the macOS installer from nodejs.org and restart ZenBar."
+        alert.informativeText = "The WhatsApp integration needs Node.js to run. It's a free, one-time install - just download the macOS installer from nodejs.org and restart ZenIsland."
         alert.alertStyle = .warning
         alert.addButton(withTitle: "Download Node.js")
         alert.addButton(withTitle: "Dismiss")

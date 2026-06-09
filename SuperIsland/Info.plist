@@ -24,10 +24,10 @@
     <array>
         <dict>
             <key>CFBundleURLName</key>
-            <string>com.zenbar.ZenBar.oauth</string>
+            <string>com.zenisland.ZenIsland.oauth</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>zenbar</string>
+                <string>zenisland</string>
             </array>
         </dict>
     </array>
@@ -36,21 +36,21 @@
     <key>LSUIElement</key>
     <true/>
     <key>NSCalendarsFullAccessUsageDescription</key>
-    <string>ZenBar needs calendar access to show upcoming events.</string>
+    <string>ZenIsland needs calendar access to show upcoming events.</string>
     <key>NSCalendarsUsageDescription</key>
-    <string>ZenBar needs calendar access to show upcoming events.</string>
+    <string>ZenIsland needs calendar access to show upcoming events.</string>
     <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>ZenBar needs Bluetooth access to show connected device notifications.</string>
+    <string>ZenIsland needs Bluetooth access to show connected device notifications.</string>
     <key>NSLocationUsageDescription</key>
-    <string>ZenBar needs location access for weather information.</string>
+    <string>ZenIsland needs location access for weather information.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>ZenBar needs location access for weather information.</string>
+    <string>ZenIsland needs location access for weather information.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>ZenBar needs location access for weather information.</string>
+    <string>ZenIsland needs location access for weather information.</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>ZenBar needs microphone access for audio visualization.</string>
+    <string>ZenIsland needs microphone access for audio visualization.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>ZenBar needs automation access to detect currently playing media in browsers and music apps.</string>
+    <string>ZenIsland needs automation access to detect currently playing media in browsers and music apps.</string>
     <key>NSHumanReadableCopyright</key>
     <string>Copyright © 2024 WorkView. All rights reserved.</string>
     <key>NSPrincipalClass</key>

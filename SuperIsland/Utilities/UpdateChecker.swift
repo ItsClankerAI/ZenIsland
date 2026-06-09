@@ -31,12 +31,12 @@ final class UpdateChecker: ObservableObject {
 
     /// Manual "Check for Updates" button tap.
     func checkNow() {
-        checkState = .failed("Automatic updates are disabled for this personal ZenBar build.")
+        checkState = .failed("Automatic updates are disabled for this personal ZenIsland build.")
     }
 
     private func performCheck() async {
         if case .checking = checkState { return }
-        checkState = .failed("Automatic updates are disabled for this personal ZenBar build.")
+        checkState = .failed("Automatic updates are disabled for this personal ZenIsland build.")
     }
 
     private func isNewer(_ candidate: String, than current: String) -> Bool {

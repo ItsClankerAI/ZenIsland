@@ -427,7 +427,7 @@ struct ExtensionsSettingsView: View {
 }
 
 private struct LinearOAuthSettingsView: View {
-    private static let authorizeURLString = "https://api.supercmd.sh/auth/linear/authorize?app=zenbar"
+    private static let authorizeURLString = "https://api.supercmd.sh/auth/linear/authorize?app=zenisland"
     private static let oauthStoreKey = "extensions.\(linearMentionsExtensionID).store.oauth"
 
     @ObservedObject private var manager = ExtensionManager.shared
@@ -506,7 +506,7 @@ private struct LinearOAuthSettingsView: View {
             if session.isExpired {
                 return "Your Linear session has expired. Authenticate again to resume mention syncing."
             }
-            return "Linear is authenticated. New mentions will appear in ZenBar."
+            return "Linear is authenticated. New mentions will appear in ZenIsland."
         }
         return "Authenticate with Linear to start mention notifications and inline replies."
     }
@@ -604,7 +604,7 @@ private struct LinearOAuthSession {
 }
 
 private struct LastFmOAuthSettingsView: View {
-    private static let authorizeURLString = "https://api.supercmd.sh/auth/lastfm/authorize?app=zenbar"
+    private static let authorizeURLString = "https://api.supercmd.sh/auth/lastfm/authorize?app=zenisland"
     private static let oauthStoreKey = "extensions.\(lastFmScrobblerExtensionID).store.oauth"
 
     @ObservedObject private var manager = ExtensionManager.shared

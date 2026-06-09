@@ -6,7 +6,7 @@
         {
           "type": "toggle",
           "key": "autoReveal",
-          "label": "Auto reveal ZenBar when a new mention arrives",
+          "label": "Auto reveal ZenIsland when a new mention arrives",
           "default": true
         },
         {

@@ -270,7 +270,7 @@ function closeReplyComposer() {
 }
 
 function mediaPreviewSection() {
-  const previewText = replyComposer.preview || "Send a quick reply from ZenBar.";
+  const previewText = replyComposer.preview || "Send a quick reply from ZenIsland.";
   const previewMarkdown = markdownWithLinkedURL(previewText);
   const previewTextNode = View.frame(
     previewMarkdown

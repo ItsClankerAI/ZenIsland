@@ -567,7 +567,7 @@ class WhatsAppSocketProvider {
       },
       version,
       logger: silentLogger,
-      browser: ["ZenBar", "macOS", "1.0.0"],
+      browser: ["ZenIsland", "macOS", "1.0.0"],
       printQRInTerminal: false,
       syncFullHistory: false,
       markOnlineOnConnect: false,

@@ -1,6 +1,6 @@
 name: SuperIsland
 options:
-  bundleIdPrefix: com.zenbar
+  bundleIdPrefix: com.zenisland
   deploymentTarget:
     macOS: "14.0"
   minimumXcodeGenVersion: "2.35"
@@ -30,10 +30,10 @@ targets:
       - package: Aptabase
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.zenbar.ZenBar
+        PRODUCT_BUNDLE_IDENTIFIER: com.zenisland.ZenIsland
         INFOPLIST_FILE: SuperIsland/Info.plist
         CODE_SIGN_ENTITLEMENTS: SuperIsland/SuperIsland.entitlements
-        PRODUCT_NAME: ZenBar
+        PRODUCT_NAME: ZenIsland
         MARKETING_VERSION: "1.0.9"
         CURRENT_PROJECT_VERSION: "10"
         COMBINE_HIDPI_IMAGES: true

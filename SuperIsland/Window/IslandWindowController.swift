@@ -357,7 +357,7 @@ final class IslandWindowController {
     // MARK: - Fullscreen hiding
     //
     // When the user opts in via Settings we hide each panel individually
-    // while a non-ZenBar window exactly covers its screen (the classic
+    // while a non-ZenIsland window exactly covers its screen (the classic
     // signature of a native macOS fullscreen app). Each screen is evaluated
     // independently so an external monitor running fullscreen video doesn't
     // pull down the island on the MacBook's built-in display.
@@ -419,7 +419,7 @@ final class IslandWindowController {
         let screenFrame = screen.frame
 
         for window in info {
-            // Skip windows owned by ZenBar itself.
+            // Skip windows owned by ZenIsland itself.
             if let pid = window[kCGWindowOwnerPID as String] as? Int, pid == ourPID {
                 continue
             }

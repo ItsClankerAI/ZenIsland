@@ -30,7 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         registerURLHandler()
         installQuitHotkeyMonitor()
 
-        // defaults write com.zenbar.ZenBar "debug.alwaysShowOnboarding" -bool true
+        // defaults write com.zenisland.ZenIsland "debug.alwaysShowOnboarding" -bool true
         let shouldShowOnboarding = !AppState.shared.onboardingCompleted || AppState.shared.debugAlwaysShowOnboarding
         if shouldShowOnboarding {
             showOnboardingIfNeeded()
@@ -190,7 +190,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func handleOAuthCallback(url: URL) {
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              components.scheme?.lowercased() == "zenbar",
+              components.scheme?.lowercased() == "zenisland",
               components.host?.lowercased() == "auth",
               components.path.lowercased() == "/callback" else {
             return
@@ -287,7 +287,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         if let button = item.button {
-            button.image = NSImage(systemSymbolName: Constants.menuBarIconName, accessibilityDescription: "ZenBar")
+            button.image = NSImage(systemSymbolName: Constants.menuBarIconName, accessibilityDescription: "ZenIsland")
         }
 
         item.menu = buildStatusMenu()
@@ -338,7 +338,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem.separator())
         menu.addItem(makeMenuItem(title: "Settings...", action: #selector(openSettings), keyEquivalent: ","))
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(makeMenuItem(title: "Quit ZenBar", action: #selector(quitApp), keyEquivalent: "q"))
+        menu.addItem(makeMenuItem(title: "Quit ZenIsland", action: #selector(quitApp), keyEquivalent: "q"))
         return menu
     }
 
@@ -459,7 +459,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let hostingController = NSHostingController(rootView: rootView)
 
         let window = NSWindow(contentViewController: hostingController)
-        window.title = "ZenBar Settings"
+        window.title = "ZenIsland Settings"
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
         window.setContentSize(NSSize(width: 960, height: 680))
         window.minSize = NSSize(width: 800, height: 560)

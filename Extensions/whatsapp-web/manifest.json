@@ -5,9 +5,9 @@
   "minAppVersion": "1.0.0",
   "main": "index.js",
   "author": {
-    "name": "ZenBar"
+    "name": "ZenIsland"
   },
-  "description": "Pairs with WhatsApp Web via QR and routes incoming messages to the ZenBar notification feed.",
+  "description": "Pairs with WhatsApp Web via QR and routes incoming messages to the ZenIsland notification feed.",
   "icon": "icon.svg",
   "license": "MIT",
   "categories": ["communication", "productivity"],

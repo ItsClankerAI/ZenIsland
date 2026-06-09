@@ -294,7 +294,7 @@ private struct WelcomeScreen: View {
                 .padding(.bottom, 24)
 
             VStack(spacing: 8) {
-                Text("Welcome to ZenBar")
+                Text("Welcome to ZenIsland")
                     .font(.system(size: 26, weight: .bold, design: .rounded))
                     .foregroundStyle(OBColors.textPrimary)
 
@@ -347,7 +347,7 @@ private struct PermissionsScreen: View {
                     .font(.system(size: 26, weight: .bold, design: .rounded))
                     .foregroundStyle(OBColors.textPrimary)
 
-                Text("ZenBar needs a few permissions to work properly.")
+                Text("ZenIsland needs a few permissions to work properly.")
                     .font(.system(size: 13, weight: .regular))
                     .foregroundStyle(OBColors.textSecondary)
             }
@@ -568,7 +568,7 @@ private struct OnboardingExtensionInfo: Identifiable {
 
     static let available: [OnboardingExtensionInfo] = [
         OnboardingExtensionInfo(
-            id: "zenbar.personal-hub",
+            id: "zenisland.personal-hub",
             name: "Personal Hub",
             description: "Time, media glance, and quick launch actions",
             fallbackIcon: "sparkles",
@@ -761,7 +761,7 @@ private struct ReadyScreen: View {
                     .font(.system(size: 26, weight: .bold, design: .rounded))
                     .foregroundStyle(OBColors.textPrimary)
 
-                Text("ZenBar will run in the background.")
+                Text("ZenIsland will run in the background.")
                     .font(.system(size: 14, weight: .regular))
                     .foregroundStyle(OBColors.textSecondary)
             }
