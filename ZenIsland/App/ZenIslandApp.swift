@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct SuperIslandApp: App {
+struct ZenIslandApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {

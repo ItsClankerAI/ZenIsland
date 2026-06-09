@@ -1,4 +1,4 @@
-name: SuperIsland
+name: ZenIsland
 options:
   bundleIdPrefix: com.zenisland
   deploymentTarget:
@@ -15,11 +15,11 @@ packages:
     url: https://github.com/aptabase/aptabase-swift
     from: "0.3.0"
 targets:
-  SuperIsland:
+  ZenIsland:
     type: application
     platform: macOS
     sources:
-      - path: SuperIsland
+      - path: ZenIsland
         excludes:
           - "**/.DS_Store"
       - path: ExtensionHost
@@ -31,8 +31,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.zenisland.ZenIsland
-        INFOPLIST_FILE: SuperIsland/Info.plist
-        CODE_SIGN_ENTITLEMENTS: SuperIsland/SuperIsland.entitlements
+        INFOPLIST_FILE: ZenIsland/Info.plist
+        CODE_SIGN_ENTITLEMENTS: ZenIsland/ZenIsland.entitlements
         PRODUCT_NAME: ZenIsland
         MARKETING_VERSION: "1.0.9"
         CURRENT_PROJECT_VERSION: "10"
@@ -41,7 +41,7 @@ targets:
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
         ENABLE_HARDENED_RUNTIME: true
     entitlements:
-      path: SuperIsland/SuperIsland.entitlements
+      path: ZenIsland/ZenIsland.entitlements
       properties:
         com.apple.security.personal-information.calendars: true
         com.apple.security.personal-information.location: true
