@@ -76,12 +76,12 @@ function nowEpochSeconds() {
 }
 
 function storeGet(key, fallback) {
-  var value = SuperIsland.store.get(key);
+  var value = ZenIsland.store.get(key);
   return value === null || value === undefined ? fallback : value;
 }
 
 function storeSet(key, value) {
-  SuperIsland.store.set(key, value);
+  ZenIsland.store.set(key, value);
 }
 
 function logInfo(message) {
@@ -105,9 +105,9 @@ function setResult(message, shouldLog) {
 }
 
 function syncSettingFlag(key, nextValue) {
-  var currentValue = SuperIsland.settings.get(key);
+  var currentValue = ZenIsland.settings.get(key);
   if (typeof currentValue === "boolean" && currentValue === nextValue) return;
-  SuperIsland.settings.set(key, nextValue);
+  ZenIsland.settings.set(key, nextValue);
 }
 
 function syncButtonAvailability() {
@@ -247,7 +247,7 @@ function decorateTrailingIndicator(node) {
 }
 
 function settingBool(key, fallback) {
-  var value = SuperIsland.settings.get(key);
+  var value = ZenIsland.settings.get(key);
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value !== 0;
   if (typeof value === "string") return value.toLowerCase() === "true";
@@ -255,19 +255,19 @@ function settingBool(key, fallback) {
 }
 
 function effectiveEnabled() {
-  var override = SuperIsland.store.get("enabledOverride");
+  var override = ZenIsland.store.get("enabledOverride");
   if (typeof override === "boolean") return override;
   return settingBool("enabled", true);
 }
 
 function sendNowPlayingEnabled() {
-  var override = SuperIsland.store.get("sendNowPlayingOverride");
+  var override = ZenIsland.store.get("sendNowPlayingOverride");
   if (typeof override === "boolean") return override;
   return settingBool("sendNowPlaying", true);
 }
 
 function hasMediaBridge() {
-  return !!(SuperIsland.system && typeof SuperIsland.system.getNowPlaying === "function");
+  return !!(ZenIsland.system && typeof ZenIsland.system.getNowPlaying === "function");
 }
 
 function readOAuthSession() {
@@ -1106,7 +1106,7 @@ async function lastFmRequest(methodName, params, options) {
   }
 
   try {
-    var response = await SuperIsland.http.fetch(url, fetchOptions);
+    var response = await ZenIsland.http.fetch(url, fetchOptions);
     var parsed = await parseResponse(response);
     var status = response && typeof response.status === "number" ? response.status : 0;
     if (status >= 200 && status < 300) {
@@ -1185,7 +1185,7 @@ function maybeNotify(title, body) {
   var now = nowEpochMs();
   if (now - state.lastNotificationAtEpochMs < NOTIFICATION_COOLDOWN_SECONDS * 1000) return;
   state.lastNotificationAtEpochMs = now;
-  SuperIsland.notifications.send({
+  ZenIsland.notifications.send({
     title: title,
     body: body,
     sound: false
@@ -1360,7 +1360,7 @@ function startAuthFlow() {
   state.auth.lastAuthError = "";
   state.auth.status = "pending";
   setResult("Approve ZenIsland in your browser to finish connecting Last.fm.");
-  SuperIsland.openURL(LASTFM_AUTHORIZE_URL);
+  ZenIsland.openURL(LASTFM_AUTHORIZE_URL);
 }
 
 function clearAuthState() {
@@ -1372,9 +1372,9 @@ function clearAuthState() {
 
 function revealIslandForSetup() {
   // Double-activate to survive the notch's initial settle animation.
-  SuperIsland.island.activate(false);
+  ZenIsland.island.activate(false);
   setTimeout(function() {
-    SuperIsland.island.activate(false);
+    ZenIsland.island.activate(false);
   }, 120);
 }
 
@@ -1815,7 +1815,7 @@ async function tick() {
 
   var snapshot = null;
   try {
-    snapshot = asObject(hasMediaBridge() ? SuperIsland.system.getNowPlaying() : null);
+    snapshot = asObject(hasMediaBridge() ? ZenIsland.system.getNowPlaying() : null);
   } catch (error) {
     snapshot = null;
     logOperationWarning("nowPlaying", "Unable to read current playback from ZenIsland.");
@@ -1872,19 +1872,19 @@ function signOut() {
 
 function toggleEnabled(forceValue) {
   var nextValue = typeof forceValue === "boolean" ? forceValue : !effectiveEnabled();
-  SuperIsland.store.set("enabledOverride", nextValue);
+  ZenIsland.store.set("enabledOverride", nextValue);
   setResult(nextValue ? "Auto scrobbling enabled" : "Auto scrobbling paused");
 }
 
 function toggleSendNowPlaying(forceValue) {
   var nextValue = typeof forceValue === "boolean" ? forceValue : !sendNowPlayingEnabled();
-  SuperIsland.store.set("sendNowPlayingOverride", nextValue);
+  ZenIsland.store.set("sendNowPlayingOverride", nextValue);
   setResult(nextValue ? "Now playing updates enabled" : "Now playing updates paused");
 }
 
 loadState();
 
-SuperIsland.registerModule({
+ZenIsland.registerModule({
   onActivate: function() {
     startPolling();
     if (!authConnected() || state.auth.status === "pending") {
@@ -1905,28 +1905,28 @@ SuperIsland.registerModule({
   onAction: function(actionID, value) {
     if (actionID === "openAlbumPage") {
       if (lastFmAlbumURL()) {
-        SuperIsland.openURL(lastFmAlbumURL());
+        ZenIsland.openURL(lastFmAlbumURL());
         setResult("Opened album on Last.fm.");
       }
       return;
     }
     if (actionID === "openTrackPage") {
       if (lastFmTrackURL()) {
-        SuperIsland.openURL(lastFmTrackURL());
+        ZenIsland.openURL(lastFmTrackURL());
         setResult("Opened track on Last.fm.");
       }
       return;
     }
     if (actionID === "openArtistPage") {
       if (lastFmArtistURL()) {
-        SuperIsland.openURL(lastFmArtistURL());
+        ZenIsland.openURL(lastFmArtistURL());
         setResult("Opened artist on Last.fm.");
       }
       return;
     }
     if (actionID === "openProfilePage") {
       if (lastFmProfileURL()) {
-        SuperIsland.openURL(lastFmProfileURL());
+        ZenIsland.openURL(lastFmProfileURL());
         setResult("Opened your Last.fm profile.");
       }
       return;

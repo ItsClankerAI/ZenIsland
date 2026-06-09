@@ -5,9 +5,9 @@ import Combine
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private static let linearExtensionID = "superisland.linear-mentions"
+    private static let linearExtensionID = "zenisland.linear-mentions"
     private static let linearOAuthStoreKey = "extensions.\(linearExtensionID).store.oauth"
-    private static let lastFmExtensionID = "superisland.lastfm-scrobbler"
+    private static let lastFmExtensionID = "zenisland.lastfm-scrobbler"
     private static let lastFmOAuthStoreKey = "extensions.\(lastFmExtensionID).store.oauth"
     private var islandWindowController: IslandWindowController?
     private var onboardingWindowController: OnboardingWindowController?

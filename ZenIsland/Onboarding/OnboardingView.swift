@@ -575,21 +575,21 @@ private struct OnboardingExtensionInfo: Identifiable {
             badge: "Custom"
         ),
         OnboardingExtensionInfo(
-            id: "superisland.pomodoro",
+            id: "zenisland.pomodoro",
             name: "Pomodoro Timer",
             description: "Focus timer with countdown in the island",
             fallbackIcon: "timer",
             badge: nil
         ),
         OnboardingExtensionInfo(
-            id: "superisland.whatsapp-web",
+            id: "zenisland.whatsapp-web",
             name: "WhatsApp Web",
             description: "Route WhatsApp messages to the island",
             fallbackIcon: "message.fill",
             badge: "Requires Login"
         ),
         OnboardingExtensionInfo(
-            id: "superisland.ai-usage",
+            id: "zenisland.ai-usage",
             name: "AI Usage",
             description: "Claude & Codex usage rings in the notch",
             fallbackIcon: "brain.head.profile",

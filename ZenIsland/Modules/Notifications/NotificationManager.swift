@@ -66,7 +66,7 @@ enum NotificationFeedSource: String, CaseIterable, Identifiable {
 @MainActor
 final class NotificationManager: ObservableObject {
     private static let accessibilityPromptedDefaultsKey = "notifications.accessibilityPrompted"
-    private static let whatsappExtensionID = "superisland.whatsapp-web"
+    private static let whatsappExtensionID = "zenisland.whatsapp-web"
 
     private struct WhatsAppLogEvent {
         let eventID: String

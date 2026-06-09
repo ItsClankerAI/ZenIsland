@@ -5,7 +5,7 @@ import Darwin
 @MainActor
 final class AgentsStatusBridge {
     static let shared = AgentsStatusBridge()
-    nonisolated static let managedExtensionID = "superisland.agents-status"
+    nonisolated static let managedExtensionID = "zenisland.agents-status"
     nonisolated static let port = 7823
 
     private let fileManager = FileManager.default

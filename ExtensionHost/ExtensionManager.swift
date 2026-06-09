@@ -511,7 +511,7 @@ private struct PendingWhatsAppProviderCommand {
 @MainActor
 final class WhatsAppWebBridge: ObservableObject {
     static let shared = WhatsAppWebBridge()
-    private static let managedExtensionID = "superisland.whatsapp-web"
+    private static let managedExtensionID = "zenisland.whatsapp-web"
 
     enum ConnectionState: String {
         case idle

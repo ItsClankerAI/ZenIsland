@@ -15,8 +15,8 @@ const POLL_INTERVAL_OPTIONS_SECONDS = [300, 600, 900, 1800, 2700, 3600];
 const DEFAULT_POLL_INTERVAL_SECONDS = 300;
 
 function renderInputComposer(options) {
-  if (SuperIsland.components && typeof SuperIsland.components.inputComposer === "function") {
-    return SuperIsland.components.inputComposer(options);
+  if (ZenIsland.components && typeof ZenIsland.components.inputComposer === "function") {
+    return ZenIsland.components.inputComposer(options);
   }
 
   return View.inputBox(
@@ -33,7 +33,7 @@ function renderInputComposer(options) {
 }
 
 const LIST_MENTIONS_QUERY = `
-query SuperIslandLinearMentions($first: Int!) {
+query ZenIslandLinearMentions($first: Int!) {
   notifications(first: $first, orderBy: updatedAt) {
     nodes {
       __typename
@@ -78,7 +78,7 @@ query SuperIslandLinearMentions($first: Int!) {
 `;
 
 const CREATE_COMMENT_MUTATION = `
-mutation SuperIslandLinearReply($input: CommentCreateInput!) {
+mutation ZenIslandLinearReply($input: CommentCreateInput!) {
   commentCreate(input: $input) {
     success
     comment {
@@ -161,12 +161,12 @@ function timeAgoLabel(timestamp) {
 }
 
 function settingBoolean(key, fallback) {
-  const value = SuperIsland.settings.get(key);
+  const value = ZenIsland.settings.get(key);
   return typeof value === "boolean" ? value : fallback;
 }
 
 function pollIntervalSeconds() {
-  const raw = SuperIsland.settings.get("pollIntervalSeconds");
+  const raw = ZenIsland.settings.get("pollIntervalSeconds");
   const parsed = Number(raw);
   if (Number.isFinite(parsed) && POLL_INTERVAL_OPTIONS_SECONDS.indexOf(parsed) !== -1) {
     return parsed;
@@ -187,7 +187,7 @@ function pollIntervalLabel() {
 }
 
 function readOAuthSession() {
-  const oauth = asObject(SuperIsland.store.get("oauth"));
+  const oauth = asObject(ZenIsland.store.get("oauth"));
   if (!oauth) return null;
 
   const accessToken = normalizeText(oauth.accessToken || oauth.access_token);
@@ -234,7 +234,7 @@ function tokenSignature(token) {
 }
 
 function readStringArray(key) {
-  const stored = SuperIsland.store.get(key);
+  const stored = ZenIsland.store.get(key);
   if (!Array.isArray(stored)) return [];
   return stored.map((value) => normalizeText(value)).filter(Boolean);
 }
@@ -249,7 +249,7 @@ function writeStringArray(key, values, limit) {
     deduped.push(value);
     if (deduped.length >= limit) break;
   }
-  SuperIsland.store.set(key, deduped);
+  ZenIsland.store.set(key, deduped);
 }
 
 function mentionTypeLabel(type) {
@@ -344,10 +344,10 @@ function persistPushedMentionKeys(currentMentions, priorKeys) {
 }
 
 function resetBaselineForToken(signature) {
-  SuperIsland.store.set("linearTokenSignature", signature);
-  SuperIsland.store.set("linearBaselineReady", false);
-  SuperIsland.store.set("seenMentionNotificationIDs", []);
-  SuperIsland.store.set("pushedMentionKeys", []);
+  ZenIsland.store.set("linearTokenSignature", signature);
+  ZenIsland.store.set("linearBaselineReady", false);
+  ZenIsland.store.set("seenMentionNotificationIDs", []);
+  ZenIsland.store.set("pushedMentionKeys", []);
 }
 
 async function graphqlRequest(query, variables) {
@@ -356,7 +356,7 @@ async function graphqlRequest(query, variables) {
     return { ok: false, error: oauth.expired ? "Linear login expired." : "Missing Linear login." };
   }
 
-  const response = await SuperIsland.http.fetch(LINEAR_API_URL, {
+  const response = await ZenIsland.http.fetch(LINEAR_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -413,7 +413,7 @@ function mentionNotificationPayload(mention) {
 }
 
 function sendMentionNotification(mention) {
-  SuperIsland.notifications.send({
+  ZenIsland.notifications.send({
     id: mention.notificationSourceID,
     appName: LINEAR_APP_NAME,
     title: mention.issueIdentifier || mention.issueTitle || "New Linear mention",
@@ -444,7 +444,7 @@ async function pollMentions(force) {
   const oauth = oauthSessionState();
   const accessToken = oauth.connected && oauth.session ? oauth.session.accessToken : "";
   const signature = tokenSignature(accessToken);
-  const storedSignature = normalizeText(SuperIsland.store.get("linearTokenSignature"));
+  const storedSignature = normalizeText(ZenIsland.store.get("linearTokenSignature"));
 
   if (signature !== storedSignature) {
     console.log("[linear] token signature changed, resetting baseline");
@@ -492,13 +492,13 @@ async function pollMentions(force) {
     const mentions = allMentions.slice(0, MAX_VISIBLE_MENTIONS);
 
     const pushedMentionKeys = readStringArray("pushedMentionKeys");
-    const baselineReady = SuperIsland.store.get("linearBaselineReady") === true;
+    const baselineReady = ZenIsland.store.get("linearBaselineReady") === true;
 
     console.log("[linear] poll ok: " + allMentions.length + " mentions, baselineReady=" + baselineReady + ", pushedKeys=" + pushedMentionKeys.length);
 
     if (!baselineReady) {
       console.log("[linear] establishing baseline (no notifications fired for " + allMentions.length + " existing mentions). Use 'Resync (notify all)' in fullExpanded to replay them.");
-      SuperIsland.store.set("linearBaselineReady", true);
+      ZenIsland.store.set("linearBaselineReady", true);
       persistPushedMentionKeys(allMentions, pushedMentionKeys);
     } else {
       const unseenMentions = allMentions
@@ -515,8 +515,8 @@ async function pollMentions(force) {
 
         persistPushedMentionKeys(allMentions, pushedMentionKeys);
 
-        if (settingBoolean("autoReveal", true) && typeof SuperIsland.island.activate === "function") {
-          SuperIsland.island.activate(true);
+        if (settingBoolean("autoReveal", true) && typeof ZenIsland.island.activate === "function") {
+          ZenIsland.island.activate(true);
         }
       } else {
         persistPushedMentionKeys(allMentions, pushedMentionKeys);
@@ -612,29 +612,29 @@ async function submitReply(body) {
   const response = await graphqlRequest(CREATE_COMMENT_MUTATION, { input });
   if (!response.ok) {
     replyComposer.error = response.error || "Failed to send reply.";
-    SuperIsland.playFeedback("error");
+    ZenIsland.playFeedback("error");
     return;
   }
 
   const payload = asObject(response.data.commentCreate);
   if (!payload || payload.success !== true) {
     replyComposer.error = "Linear did not accept the reply.";
-    SuperIsland.playFeedback("error");
+    ZenIsland.playFeedback("error");
     return;
   }
 
-  if (replyComposer.notificationSourceID && typeof SuperIsland.system.dismissNotification === "function") {
-    SuperIsland.system.dismissNotification(replyComposer.notificationSourceID);
+  if (replyComposer.notificationSourceID && typeof ZenIsland.system.dismissNotification === "function") {
+    ZenIsland.system.dismissNotification(replyComposer.notificationSourceID);
   }
 
   closeReplyComposer();
-  const closed = typeof SuperIsland.system.closePresentedInteraction === "function"
-    ? !!SuperIsland.system.closePresentedInteraction()
+  const closed = typeof ZenIsland.system.closePresentedInteraction === "function"
+    ? !!ZenIsland.system.closePresentedInteraction()
     : false;
   if (!closed) {
     pollMentions(true);
   }
-  SuperIsland.playFeedback("success");
+  ZenIsland.playFeedback("success");
 }
 
 function statusFooterText() {
@@ -922,7 +922,7 @@ function fullExpandedView() {
   ], { spacing: 8, align: "leading" });
 }
 
-SuperIsland.registerModule({
+ZenIsland.registerModule({
   onActivate() {
     startPolling();
   },
@@ -972,16 +972,16 @@ SuperIsland.registerModule({
 
   onAction(actionID) {
     if (actionID === "login-linear") {
-      SuperIsland.openURL(LINEAR_AUTHORIZE_URL);
+      ZenIsland.openURL(LINEAR_AUTHORIZE_URL);
       return;
     }
 
     if (actionID === "disconnect-linear") {
-      SuperIsland.store.set("oauth", null);
-      SuperIsland.store.set("linearBaselineReady", false);
-      SuperIsland.store.set("linearTokenSignature", "");
-      SuperIsland.store.set("seenMentionNotificationIDs", []);
-      SuperIsland.store.set("pushedMentionKeys", []);
+      ZenIsland.store.set("oauth", null);
+      ZenIsland.store.set("linearBaselineReady", false);
+      ZenIsland.store.set("linearTokenSignature", "");
+      ZenIsland.store.set("seenMentionNotificationIDs", []);
+      ZenIsland.store.set("pushedMentionKeys", []);
       closeReplyComposer();
       state = {
         status: "needsAuth",
@@ -1001,8 +1001,8 @@ SuperIsland.registerModule({
 
     if (actionID === "resync-notify-all") {
       console.log("[linear] resync-notify-all: clearing baseline so existing mentions fire");
-      SuperIsland.store.set("linearBaselineReady", false);
-      SuperIsland.store.set("pushedMentionKeys", []);
+      ZenIsland.store.set("linearBaselineReady", false);
+      ZenIsland.store.set("pushedMentionKeys", []);
       pollMentions(true);
       return;
     }
@@ -1014,8 +1014,8 @@ SuperIsland.registerModule({
 
     if (actionID === "close-reply") {
       closeReplyComposer();
-      const closed = typeof SuperIsland.system.closePresentedInteraction === "function"
-        ? !!SuperIsland.system.closePresentedInteraction()
+      const closed = typeof ZenIsland.system.closePresentedInteraction === "function"
+        ? !!ZenIsland.system.closePresentedInteraction()
         : false;
       if (!closed) {
         pollMentions(true);
@@ -1026,7 +1026,7 @@ SuperIsland.registerModule({
     if (actionID === "open-in-linear" && replyComposer) {
       const targetURL = replyComposer.commentURL || replyComposer.issueURL;
       if (targetURL) {
-        SuperIsland.openURL(targetURL);
+        ZenIsland.openURL(targetURL);
       }
       return;
     }

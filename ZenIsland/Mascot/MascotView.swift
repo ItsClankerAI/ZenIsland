@@ -43,7 +43,7 @@ struct MascotRendererView: View {
     }
 
     private var shouldHideMascot: Bool {
-        extensionID == "superisland.pomodoro" && !manager.showInPomodoro
+        extensionID == "zenisland.pomodoro" && !manager.showInPomodoro
     }
 }
 

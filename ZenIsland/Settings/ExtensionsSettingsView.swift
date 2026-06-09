@@ -1,8 +1,8 @@
 import SwiftUI
 import AppKit
 
-private let linearMentionsExtensionID = "superisland.linear-mentions"
-private let lastFmScrobblerExtensionID = "superisland.lastfm-scrobbler"
+private let linearMentionsExtensionID = "zenisland.linear-mentions"
+private let lastFmScrobblerExtensionID = "zenisland.lastfm-scrobbler"
 
 private enum ExtensionListFilter: String, CaseIterable, Identifiable {
     case all
@@ -118,7 +118,7 @@ struct ExtensionsSettingsView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     extensionHeaderCard(for: manifest)
 
-                    if manifest.id == "superisland.whatsapp-web" {
+                    if manifest.id == "zenisland.whatsapp-web" {
                         SettingsCard(title: "WhatsApp Web Login") {
                             WhatsAppWebBridgeSettingsView()
                         }
