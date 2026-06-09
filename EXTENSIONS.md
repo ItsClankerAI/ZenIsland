@@ -1,10 +1,8 @@
-# SuperIsland Extensions
-
-Full docs at [dynamicisland.app/docs](https://dynamicisland.app/docs)
+# ZenIsland Extensions
 
 ---
 
-Extensions are JavaScript packages that run inside SuperIsland's sandboxed runtime. They can render UI in the compact pill, the expanded drawer, and the full detail panel — and run background logic to fetch or compute data.
+Extensions are JavaScript packages that run inside ZenIsland's sandboxed runtime. They can render UI in the compact pill, the expanded drawer, and the full detail panel — and run background logic to fetch or compute data.
 
 ---
 
@@ -27,7 +25,7 @@ Drop your extension folder into `Extensions/` and it will be discovered automati
 
 ```json
 {
-  "id": "superisland.your-extension",
+  "id": "zenisland.your-extension",
   "name": "My Extension",
   "version": "1.0.0",
   "minAppVersion": "1.0.0",
@@ -56,9 +54,9 @@ Drop your extension folder into `Extensions/` and it will be discovered automati
 
 | Permission | What it unlocks |
 |---|---|
-| `storage` | `SuperIsland.store` key-value persistence |
-| `network` | `SuperIsland.http.fetch()` |
-| `media` | `SuperIsland.system.getNowPlaying()` |
+| `storage` | `ZenIsland.store` key-value persistence |
+| `network` | `ZenIsland.http.fetch()` |
+| `media` | `ZenIsland.system.getNowPlaying()` |
 | `notifications` | Send macOS notifications |
 
 **Capabilities**
@@ -75,20 +73,20 @@ Drop your extension folder into `Extensions/` and it will be discovered automati
 
 ## index.js — API reference
 
-The `SuperIsland` global is injected before your script runs.
+The `ZenIsland` global is injected before your script runs.
 
 ```js
 // --- Rendering ---
 
 // Set compact view (shown in the pill)
-SuperIsland.island.setCompactView({
+ZenIsland.island.setCompactView({
   left:   { type: "text", value: "25:00" },
   center: { type: "text", value: "Focus" },
   right:  { type: "icon", name: "timer" }
 })
 
 // Set expanded view (shown when island is tapped)
-SuperIsland.island.setExpandedView({
+ZenIsland.island.setExpandedView({
   rows: [
     { type: "text", value: "Session 3 of 4", style: "title" },
     { type: "text", value: "25 minutes remaining", style: "subtitle" },
@@ -126,23 +124,23 @@ function onSettingsChanged(key, value) {
 }
 
 // Register your hooks:
-SuperIsland.extension.onInit(onInit)
-SuperIsland.extension.onRefresh(onRefresh)
-SuperIsland.extension.onAction(onAction)
-SuperIsland.extension.onSettingsChanged(onSettingsChanged)
+ZenIsland.extension.onInit(onInit)
+ZenIsland.extension.onRefresh(onRefresh)
+ZenIsland.extension.onAction(onAction)
+ZenIsland.extension.onSettingsChanged(onSettingsChanged)
 
 // --- Storage ---
 
-SuperIsland.store.set("key", "value")   // persist a value
-SuperIsland.store.get("key")             // retrieve it (returns null if not set)
+ZenIsland.store.set("key", "value")   // persist a value
+ZenIsland.store.get("key")             // retrieve it (returns null if not set)
 
 // --- Settings ---
 
-SuperIsland.settings.get("myKey")        // read a value from settings.json schema
+ZenIsland.settings.get("myKey")        // read a value from settings.json schema
 
 // --- Network ---
 
-SuperIsland.http.fetch("https://api.example.com/data")
+ZenIsland.http.fetch("https://api.example.com/data")
   .then(function(response) {
     var data = JSON.parse(response.body)
     // update views with data
@@ -150,22 +148,22 @@ SuperIsland.http.fetch("https://api.example.com/data")
 
 // --- Notifications ---
 
-SuperIsland.notifications.send({
+ZenIsland.notifications.send({
   title: "Time's up",
   body: "Take a break."
 })
 
 // --- System media (requires "media") ---
 
-var snapshot = SuperIsland.system.getNowPlaying()
+var snapshot = ZenIsland.system.getNowPlaying()
 if (snapshot) {
   console.log(snapshot.title, snapshot.artist, snapshot.playbackState)
 }
 
 // --- Island control ---
 
-SuperIsland.island.activate()    // bring the island to the foreground
-SuperIsland.island.dismiss()     // collapse back to compact
+ZenIsland.island.activate()    // bring the island to the foreground
+ZenIsland.island.dismiss()     // collapse back to compact
 ```
 
 ---
@@ -180,12 +178,12 @@ var price = "--";
 var change = "--";
 
 function onInit() {
-  symbol = SuperIsland.settings.get("symbol") || "AAPL";
+  symbol = ZenIsland.settings.get("symbol") || "AAPL";
   render();
 }
 
 function onRefresh() {
-  SuperIsland.http.fetch("https://query1.finance.yahoo.com/v8/finance/quote?symbols=" + symbol)
+  ZenIsland.http.fetch("https://query1.finance.yahoo.com/v8/finance/quote?symbols=" + symbol)
     .then(function(res) {
       var data = JSON.parse(res.body);
       var quote = data.quoteResponse.result[0];
@@ -204,13 +202,13 @@ function onSettingsChanged(key, value) {
 }
 
 function render() {
-  SuperIsland.island.setCompactView({
+  ZenIsland.island.setCompactView({
     left:   { type: "text", value: symbol },
     center: { type: "text", value: price  },
     right:  { type: "text", value: change }
   });
 
-  SuperIsland.island.setExpandedView({
+  ZenIsland.island.setExpandedView({
     rows: [
       { type: "text", value: symbol + "  " + price, style: "title"    },
       { type: "text", value: "Change: " + change,   style: "subtitle" }
@@ -218,9 +216,9 @@ function render() {
   });
 }
 
-SuperIsland.extension.onInit(onInit);
-SuperIsland.extension.onRefresh(onRefresh);
-SuperIsland.extension.onSettingsChanged(onSettingsChanged);
+ZenIsland.extension.onInit(onInit);
+ZenIsland.extension.onRefresh(onRefresh);
+ZenIsland.extension.onSettingsChanged(onSettingsChanged);
 ```
 
 **settings.json** for the above:
@@ -261,6 +259,6 @@ SuperIsland.extension.onSettingsChanged(onSettingsChanged);
 ## Tips
 
 - Keep your compact view minimal — the pill is small. One piece of key info per slot.
-- Persist any state you'd want restored across app restarts using `SuperIsland.store`.
+- Persist any state you'd want restored across app restarts using `ZenIsland.store`.
 - Use `onRefresh` for polling. Avoid `setInterval` — the runtime controls scheduling.
 - Test with the app running in Xcode; extension console logs appear in the Xcode output.

@@ -1,21 +1,13 @@
 <p align="center">
-  <img src="assets/logo.png" width="96" height="96" alt="SuperIsland" />
+  <img src="assets/logo.png" width="96" height="96" alt="ZenIsland" />
 </p>
 
-<h1 align="center">SuperIsland</h1>
+<h1 align="center">ZenIsland</h1>
 
 <p align="center">
   Transform your Mac's notch into a live, interactive island.<br />
   Now Playing · Battery · Weather · Calendar · Notifications · Extensions
 </p>
-
-<p align="center">
-  <a href="https://dynamicisland.app">Website</a> ·
-  <a href="https://dynamicisland.app/docs">Docs</a> ·
-  <a href="https://github.com/shobhit99/superisland/releases">Releases</a>
-</p>
-
----
 
 ## Requirements
 
@@ -29,49 +21,22 @@
 ## Setup
 
 ```bash
-git clone https://github.com/shobhit99/superisland.git
-cd superisland
+git clone <your-zenisland-repo-url>
+cd zenisland
 xcodegen generate
-open SuperIsland.xcodeproj
+open ZenIsland.xcodeproj
 ```
 
-Select the `SuperIsland` scheme, choose your Mac as the destination, and hit Run.
+Select the `ZenIsland` scheme, choose your Mac as the destination, and hit Run.
 
 > On first launch the app will ask for Accessibility, Calendar, and Location permissions. These are required for the relevant modules to work.
 
----
+## Local Build
 
-## Building a DMG
-
-For a quick unsigned local build:
+For a local Debug build:
 
 ```bash
-./scripts/build-dmg.sh
-```
-
-For a signed release, use a Developer ID certificate and notarization credentials. Copy `.env.template` to `.env` and fill in:
-
-```
-APPLE_ID=you@example.com
-APP_SPECIFIC_PASSWORD=xxxx-xxxx-xxxx-xxxx
-TEAM_ID=XXXXXXXXXX
-SIGNING_IDENTITY=Developer ID Application: Your Name (TEAMID)
-```
-
-Then run:
-
-```bash
-./scripts/build-and-release.sh
-```
-
-This archives a universal app, bundles a universal runtime, notarizes the DMG, and produces `build/SuperIsland.dmg`.
-
-Release and Homebrew packaging notes are in [docs/RELEASE.md](docs/RELEASE.md). A Homebrew Cask template is available at [packaging/homebrew/superisland.rb](packaging/homebrew/superisland.rb).
-
-To verify a built app bundle:
-
-```bash
-./scripts/verify-universal-build.sh build/SuperIsland.app --skip-signature
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project ZenIsland.xcodeproj -scheme ZenIsland -configuration Debug -destination 'platform=macOS' build
 ```
 
 ---
@@ -79,7 +44,7 @@ To verify a built app bundle:
 ## Project structure
 
 ```
-SuperIsland/
+ZenIsland/
   App/              AppDelegate, AppState
   Modules/          Built-in modules (Battery, NowPlaying, Weather, …)
   Settings/         Settings window views
@@ -87,18 +52,18 @@ SuperIsland/
   Views/            CompactView, ExpandedView, IslandWindow
 ExtensionHost/      JS runtime, extension manager, bridge
 Extensions/         Bundled extensions (pomodoro, whatsapp-web, …)
-scripts/            Build & release scripts
+scripts/            Local extension maintenance scripts
 ```
 
 ---
 
 ## Extensions
 
-Extensions are JavaScript packages that run inside a sandboxed JavaScriptCore context. Read the full guide at [dynamicisland.app/docs](https://dynamicisland.app/docs) or in [EXTENSIONS.md](EXTENSIONS.md).
+Extensions are JavaScript packages that run inside a sandboxed JavaScriptCore context. Read the local guide in [EXTENSIONS.md](EXTENSIONS.md).
 
 ## Notifications
 
-The Notifications module supports source-level controls for SuperIsland extensions, the bundled WhatsApp integration, and compatible public app broadcasts. See [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md).
+The Notifications module supports source-level controls for ZenIsland extensions, the bundled WhatsApp integration, and compatible public app broadcasts. See [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md).
 ## Now Playing
 
 Now Playing supports system media, Apple Music, Spotify, and opt-in browser media detection for supported Chromium browsers. See [docs/NOW_PLAYING.md](docs/NOW_PLAYING.md).
@@ -124,21 +89,3 @@ The built-in Shelf module can stage local files, folders, URLs, text snippets, a
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
-
----
-
-## Updates
-
-SuperIsland checks for updates automatically on launch. When a new version is available a dialog appears — click **Update** to download and install without reinstalling.
-
----
-
-## Star History
-
-<a href="https://www.star-history.com/#shobhit99/superisland&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=shobhit99/superisland&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=shobhit99/superisland&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=shobhit99/superisland&type=Date" />
-  </picture>
-</a>

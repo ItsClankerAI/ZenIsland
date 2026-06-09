@@ -129,7 +129,7 @@ activates — the host owns the process, so no plist or launchd involvement):
 
 The bridge is now managed by ZenIsland itself — old versions relied on a
 `launchd` user agent installed via `server/install.sh`. On first launch of the
-new extension, any `com.superisland.agents-status` or `com.superisland.cc-status`
+new extension, any `com.zenisland.agents-status` or `com.zenisland.cc-status`
 LaunchAgent left over from previous installs is booted out and its plist
 removed automatically, so there's nothing to clean up by hand.
 

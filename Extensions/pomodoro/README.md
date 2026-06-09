@@ -1,6 +1,6 @@
 # Pomodoro Timer Extension
 
-Standalone SuperIsland extension implemented only with the `SuperIsland` + `View` JavaScript API.
+Standalone ZenIsland extension implemented only with the `ZenIsland` + `View` JavaScript API.
 
 ## Files
 
@@ -11,5 +11,5 @@ Standalone SuperIsland extension implemented only with the `SuperIsland` + `View
 ## Notes
 
 - No imports from this app codebase.
-- Can be copied to any SuperIsland-compatible extension host.
+- Can be copied to any ZenIsland-compatible extension host.
 - Designed to be packaged/distributed independently later (zip/Git release/registry).
