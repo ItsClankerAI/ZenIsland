@@ -1,6 +1,6 @@
 name: ZenIsland
 options:
-  bundleIdPrefix: com.zenisland
+  bundleIdPrefix: com.zenspace
   deploymentTarget:
     macOS: "14.0"
   minimumXcodeGenVersion: "2.35"
@@ -30,7 +30,7 @@ targets:
       - package: Aptabase
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.zenisland.ZenIsland
+        PRODUCT_BUNDLE_IDENTIFIER: com.zenspace.ZenIsland
         INFOPLIST_FILE: ZenIsland/Info.plist
         CODE_SIGN_ENTITLEMENTS: ZenIsland/ZenIsland.entitlements
         PRODUCT_NAME: ZenIsland

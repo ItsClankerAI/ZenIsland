@@ -30,7 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         registerURLHandler()
         installQuitHotkeyMonitor()
 
-        // defaults write com.zenisland.ZenIsland "debug.alwaysShowOnboarding" -bool true
+        // defaults write com.zenspace.ZenIsland "debug.alwaysShowOnboarding" -bool true
         let shouldShowOnboarding = !AppState.shared.onboardingCompleted || AppState.shared.debugAlwaysShowOnboarding
         if shouldShowOnboarding {
             showOnboardingIfNeeded()

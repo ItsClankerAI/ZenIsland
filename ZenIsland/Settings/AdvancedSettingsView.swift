@@ -155,7 +155,7 @@ struct AdvancedSettingsView: View {
     }
 
     private func resetAllSettings() {
-        let domain = Bundle.main.bundleIdentifier ?? "com.zenisland.ZenIsland"
+        let domain = Bundle.main.bundleIdentifier ?? "com.zenspace.ZenIsland"
         UserDefaults.standard.removePersistentDomain(forName: domain)
         UserDefaults.standard.synchronize()
     }

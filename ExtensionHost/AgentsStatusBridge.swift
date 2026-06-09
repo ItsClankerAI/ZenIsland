@@ -349,7 +349,7 @@ final class AgentsStatusBridge {
         didCleanupLegacyLaunchd = true
 
         let home = fileManager.homeDirectoryForCurrentUser
-        let labels = ["com.zenisland.agents-status", "com.zenisland.cc-status"]
+        let labels = ["com.zenspace.agents-status", "com.zenspace.cc-status"]
         let uid = getuid()
         for label in labels {
             let plistURL = home.appendingPathComponent("Library/LaunchAgents/\(label).plist")
