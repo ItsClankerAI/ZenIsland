@@ -2,7 +2,7 @@
   "id": "zenisland.lastfm-scrobbler",
   "name": "Last.fm Scrobbler",
   "version": "0.1.0",
-  "minAppVersion": "1.0.2",
+  "minAppVersion": "1.0.0",
   "main": "index.js",
   "author": {
     "name": "Jonathan Perez"
