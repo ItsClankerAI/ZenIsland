@@ -7,8 +7,8 @@ Thanks for taking the time to contribute. Here's everything you need to get goin
 ## Getting started
 
 ```bash
-git clone <your-zenisland-repo-url>
-cd zenisland
+git clone https://github.com/YOUR_USERNAME/ZenIsland.git
+cd ZenIsland
 xcodegen generate
 open ZenIsland.xcodeproj
 ```

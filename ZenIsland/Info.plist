@@ -56,7 +56,7 @@
     <key>NSAppleEventsUsageDescription</key>
     <string>ZenIsland needs automation access to detect currently playing media in browsers and music apps.</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2024 WorkView. All rights reserved.</string>
+	<string>Copyright © 2026 ZenIsland Contributors.</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
 </dict>

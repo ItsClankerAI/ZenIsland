@@ -21,8 +21,8 @@
 ## Setup
 
 ```bash
-git clone <your-zenisland-repo-url>
-cd zenisland
+git clone https://github.com/YOUR_USERNAME/ZenIsland.git
+cd ZenIsland
 xcodegen generate
 open ZenIsland.xcodeproj
 ```
