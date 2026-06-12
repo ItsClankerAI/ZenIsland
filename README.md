@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" width="96" height="96" alt="ZenIsland" />
+  <img src="assets/zenisland-logo.png" width="96" height="96" alt="ZenIsland" />
 </p>
 
 <h1 align="center">ZenIsland</h1>
