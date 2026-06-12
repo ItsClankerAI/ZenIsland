@@ -21,7 +21,7 @@
 ## Setup
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ZenIsland.git
+git clone https://github.com/ItsClankerAI/ZenIsland.git
 cd ZenIsland
 xcodegen generate
 open ZenIsland.xcodeproj
