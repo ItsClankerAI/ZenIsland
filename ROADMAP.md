@@ -8,7 +8,6 @@ ZenIsland is early and focused on practical notch workflows first.
 - Refine Now Playing source focus and browser media support.
 - Expand Personal Hub customization.
 - Polish extension settings and bundled extension documentation.
-- Resolve upstream licensing/provenance before adding a project license.
 - Verify or replace the bundled Last.fm API key and OAuth broker wording.
 
 ## Later

@@ -89,3 +89,7 @@ The built-in Shelf module can stage local files, folders, URLs, text snippets, a
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+ZenIsland is released under the [MIT License](LICENSE).
