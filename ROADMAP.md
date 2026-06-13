@@ -15,4 +15,3 @@ ZenIsland is early and focused on practical notch workflows first.
 - Add more extension examples.
 - Improve onboarding for permissions and first-run setup.
 - Prepare a signed release workflow once distribution requirements are clear.
-- Create a clean ZenIsland release tag after smoke testing and licensing are settled.
