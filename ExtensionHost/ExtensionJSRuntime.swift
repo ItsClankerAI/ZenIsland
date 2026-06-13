@@ -33,6 +33,11 @@ final class ExtensionJSRuntime {
     private var didActivate = false
     private var timersSuspended = false
 
+    private static let minimumOneShotTimerInterval: TimeInterval = 0.01
+    private static let minimumRepeatingTimerInterval: TimeInterval = 0.25
+    private static let maximumTimerInterval: TimeInterval = 86_400
+    private static let timerWarningThreshold = 50
+
     private let defaults = UserDefaults.standard
     private var islandActivationModule: ActiveModule {
         manifest.capabilities.notificationFeed ? .builtIn(.notifications) : .extension_(extensionID)
@@ -926,8 +931,18 @@ final class ExtensionJSRuntime {
         let timerID = nextTimerID
         nextTimerID += 1
 
-        let requestedInterval = max(0.01, milliseconds / 1000)
-        let interval = repeats ? max(0.25, requestedInterval) : requestedInterval
+        guard let interval = sanitizedTimerInterval(milliseconds: milliseconds, repeats: repeats, timerID: timerID) else {
+            return 0
+        }
+
+        if timers.count + 1 > Self.timerWarningThreshold {
+            ExtensionLogger.shared.log(
+                extensionID,
+                .warning,
+                "High active JS timer count: \(timers.count + 1). Check for missing clearInterval/clearTimeout calls."
+            )
+        }
+
         let timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: repeats) { [weak self] timer in
             guard let self else { return }
             if repeats, self.timersSuspended {
@@ -946,6 +961,49 @@ final class ExtensionJSRuntime {
         RunLoop.main.add(timer, forMode: .common)
         timers[timerID] = timer
         return timerID
+    }
+
+    private func sanitizedTimerInterval(milliseconds: Double, repeats: Bool, timerID: Int) -> TimeInterval? {
+        guard milliseconds.isFinite else {
+            ExtensionLogger.shared.log(
+                extensionID,
+                .warning,
+                "Ignoring JS \(repeats ? "setInterval" : "setTimeout") \(timerID) with non-finite delay: \(milliseconds)"
+            )
+            return nil
+        }
+
+        guard milliseconds >= 0 else {
+            ExtensionLogger.shared.log(
+                extensionID,
+                .warning,
+                "Ignoring JS \(repeats ? "setInterval" : "setTimeout") \(timerID) with negative delay: \(milliseconds)ms"
+            )
+            return nil
+        }
+
+        let requestedInterval = milliseconds / 1000
+        let minimumInterval = repeats ? Self.minimumRepeatingTimerInterval : Self.minimumOneShotTimerInterval
+        let clampedInterval = min(max(requestedInterval, minimumInterval), Self.maximumTimerInterval)
+
+        if clampedInterval != requestedInterval {
+            ExtensionLogger.shared.log(
+                extensionID,
+                .warning,
+                "Clamped JS \(repeats ? "setInterval" : "setTimeout") \(timerID) delay from \(milliseconds)ms to \(clampedInterval)s"
+            )
+        }
+
+        guard clampedInterval.isFinite, clampedInterval > 0 else {
+            ExtensionLogger.shared.log(
+                extensionID,
+                .warning,
+                "Ignoring JS \(repeats ? "setInterval" : "setTimeout") \(timerID) after invalid interval normalization: \(clampedInterval)"
+            )
+            return nil
+        }
+
+        return clampedInterval
     }
 
     private func clearTimer(id: Int) {

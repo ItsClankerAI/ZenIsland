@@ -193,14 +193,18 @@ final class ModuleRefreshScheduler: ObservableObject {
             return
         }
 
-        let interval = schedule.interval
+        guard let safeSchedule = validatedSchedule(schedule, for: job) else {
+            return
+        }
+
+        let interval = safeSchedule.interval
         let nextFireDate = Date().addingTimeInterval(interval)
         let timer = Timer(timeInterval: interval, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.run(id: id)
             }
         }
-        timer.tolerance = schedule.tolerance
+        timer.tolerance = safeSchedule.tolerance
         RunLoop.main.add(timer, forMode: .common)
 
         job.timer = timer
@@ -219,7 +223,8 @@ final class ModuleRefreshScheduler: ObservableObject {
             return
         }
 
-        guard let schedule = effectiveSchedule(for: job) else {
+        guard let schedule = effectiveSchedule(for: job),
+              let safeSchedule = validatedSchedule(schedule, for: job) else {
             reschedule(id: id, runIfNewlyVisible: false)
             return
         }
@@ -229,7 +234,7 @@ final class ModuleRefreshScheduler: ObservableObject {
         let duration = Date().timeIntervalSince(start)
         job.lastRunDate = start
         job.lastRunDuration = duration
-        job.nextFireDate = Date().addingTimeInterval(schedule.interval)
+        job.nextFireDate = Date().addingTimeInterval(safeSchedule.interval)
         job.lastError = nil
         jobs[id] = job
 
@@ -273,6 +278,39 @@ final class ModuleRefreshScheduler: ObservableObject {
         }
 
         return (adjustedInterval, adjustedTolerance)
+    }
+
+    private func validatedSchedule(
+        _ schedule: (interval: TimeInterval, tolerance: TimeInterval),
+        for job: Job
+    ) -> (interval: TimeInterval, tolerance: TimeInterval)? {
+        guard schedule.interval.isFinite, schedule.interval > 0 else {
+            markInvalidSchedule(job, reason: "Invalid interval \(schedule.interval)")
+            return nil
+        }
+
+        let interval = min(max(schedule.interval, 0.25), 86_400)
+        var tolerance = schedule.tolerance.isFinite ? schedule.tolerance : interval * 0.15
+        tolerance = min(max(tolerance, 0), interval)
+
+        if interval != schedule.interval || tolerance != schedule.tolerance {
+            var updated = job
+            updated.lastError = "Clamped invalid schedule interval=\(schedule.interval), tolerance=\(schedule.tolerance)"
+            jobs[job.id] = updated
+        }
+
+        return (interval, tolerance)
+    }
+
+    private func markInvalidSchedule(_ job: Job, reason: String) {
+        var updated = job
+        updated.timer?.invalidate()
+        updated.timer = nil
+        updated.nextFireDate = nil
+        updated.status = "Invalid schedule"
+        updated.lastError = reason
+        jobs[job.id] = updated
+        updateDiagnostics()
     }
 
     private func minimumInterval(for module: ActiveModule?) -> TimeInterval {
